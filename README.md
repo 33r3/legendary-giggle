@@ -14,10 +14,18 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
 - Phase 4 (session tier): region polygon loading (from committed files
   under `content/regions/`), time-weighted route attribution (bucketing a
   workout's minutes by region), the roll-count mechanic (how many table
-  rolls a session earns per region), and drop tables (`content/tables/`,
-  one per region) with a pure roll-resolution function. Region boundaries
-  are flat for now — hierarchy is a later schema decision. Not built yet:
-  actually persisting/awarding roll results from a real workout.
+  rolls a session earns per region), drop tables (`content/tables/`, one
+  per region), and end-to-end session execution — a workout resolves real
+  rolls and persists them, gated on the region being unlocked. Rolling is
+  never recomputed (genuine randomness happens at resolution time), unlike
+  the passive tier. Region boundaries are flat for now — hierarchy is a
+  later schema decision.
+- Phase 5 (region unlocks, the sink): Fragments spend to unlock a region
+  permanently. Home is free (`always_unlocked`); other regions have a
+  generated-not-committed cost. Fragments come from passive accrual and
+  from converting common session results back to Fragments. The weekly
+  wager/payoff-roll mechanic isn't wired up yet — sessions currently roll
+  a plain d100 with no bonus.
 
 ## Running locally
 
@@ -86,6 +94,28 @@ to already be loaded) with:
 
 ```
 python scripts/load_drop_tables.py
+```
+
+Then materialize unlock costs for every non-free region (deterministic
+per seed + region slug, so rerunning is a no-op unless `GAME_SEED`
+changes) with:
+
+```
+python scripts/materialize_unlock_costs.py
+```
+
+Full local setup order: `alembic upgrade head`, then the four scripts
+above (economy, regions, drop tables, unlock costs) in that order —
+drop tables and unlock costs both need regions loaded first.
+
+## Processing sessions
+
+After ingest, resolve any workouts that don't have roll results yet
+(safe to rerun — already-processed workouts are left untouched, since
+rolling involves genuine randomness that's never recomputed) with:
+
+```
+python scripts/process_sessions.py
 ```
 
 ## Migrations

@@ -39,3 +39,12 @@ def generate_session_tier_params(seed: str) -> dict[str, int]:
         "roll_interval_minutes": _ROLL_INTERVAL_MINUTES,
         "max_rolls_per_session": _pick(seed, "max_rolls_per_session", _MAX_ROLLS_PER_SESSION_CANDIDATES),
     }
+
+
+_REGION_UNLOCK_COST_CANDIDATES = [15, 20, 25, 30, 35, 40, 50, 60, 80, 100]
+
+
+def generate_region_unlock_cost(seed: str, region_slug: str) -> int:
+    """Per-region, not just per-seed, so each region gets its own cost
+    rather than all non-free regions sharing one price."""
+    return _pick(seed, f"region_unlock_cost:{region_slug}", _REGION_UNLOCK_COST_CANDIDATES)

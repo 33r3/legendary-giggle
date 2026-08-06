@@ -34,6 +34,7 @@ def parse_region_features(geojson_text: str) -> list[dict]:
                 "slug": props["slug"],
                 "name": props["name"],
                 "polygon_geojson": json.dumps(feature["geometry"]),
+                "always_unlocked": bool(props.get("always_unlocked", False)),
             }
         )
     return features
@@ -50,6 +51,7 @@ def load_regions(db: Session, geojson_text: str) -> list[Region]:
             db.add(region)
         region.name = feature["name"]
         region.polygon_geojson = feature["polygon_geojson"]
+        region.always_unlocked = feature["always_unlocked"]
         loaded.append(region)
 
     db.commit()

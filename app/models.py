@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -118,6 +118,8 @@ class Region(Base):
     slug: Mapped[str] = mapped_column(String(64), unique=True)
     name: Mapped[str] = mapped_column(String(255))
     polygon_geojson: Mapped[str] = mapped_column(Text)
+    always_unlocked: Mapped[bool] = mapped_column(Boolean, default=False)
+    unlock_cost_fragments: Mapped[int | None] = mapped_column(Integer, nullable=True)
     loaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -179,3 +181,45 @@ class DropTableItem(Base):
     name: Mapped[str] = mapped_column(String(255))
 
     band: Mapped[DropTableBand] = relationship(back_populates="items")
+
+
+class RegionUnlock(Base):
+    """A region's unlock event. Presence of a row means unlocked; absence
+    (and not always_unlocked) means locked. Never removed."""
+
+    __tablename__ = "region_unlocks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    region_id: Mapped[int] = mapped_column(ForeignKey("regions.id"), unique=True)
+    unlocked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class FragmentLedgerEntry(Base):
+    """Append-only Fragment transaction log. Balance is the sum of this
+    table plus every PassiveFragmentAward. kind is one of
+    'common_conversion' (+) or 'region_unlock' (-)."""
+
+    __tablename__ = "fragment_ledger_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    kind: Mapped[str] = mapped_column(String(32))
+    amount: Mapped[int] = mapped_column(Integer)
+    region_id: Mapped[int | None] = mapped_column(ForeignKey("regions.id"), nullable=True)
+    note: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+
+class WorkoutRollResult(Base):
+    """One resolved drop-table roll from a real session. Involves genuine
+    randomness at resolution time, so unlike passive Fragments this is
+    never recomputed — once rolled, it's permanent, like a raw event in
+    its own right."""
+
+    __tablename__ = "workout_roll_results"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    workout_id: Mapped[int] = mapped_column(ForeignKey("raw_workouts.id"))
+    region_id: Mapped[int] = mapped_column(ForeignKey("regions.id"))
+    tier: Mapped[str] = mapped_column(String(32))
+    item_name: Mapped[str] = mapped_column(String(255))
+    rolled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

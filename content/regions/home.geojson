@@ -5,7 +5,8 @@
       "type": "Feature",
       "properties": {
         "slug": "home",
-        "name": "Home Ground"
+        "name": "Home Ground",
+        "always_unlocked": true
       },
       "geometry": {
         "type": "Polygon",
