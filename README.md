@@ -118,6 +118,11 @@ rolling involves genuine randomness that's never recomputed) with:
 python scripts/process_sessions.py
 ```
 
+## Deployment
+
+See `deploy/README.md` for the Ubuntu/nginx/systemd setup, secrets
+handling, and backups.
+
 ## Migrations
 
 Schema changes go through Alembic:
