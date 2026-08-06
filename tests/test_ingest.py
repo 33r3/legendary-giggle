@@ -78,7 +78,7 @@ def test_persists_raw_payload_and_parsed_rows(client, db_session):
     assert [p.sequence_index for p in route_points] == [0, 1]
 
 
-def test_ingest_is_append_only_across_repeated_deliveries(client, db_session):
+def test_raw_events_and_step_samples_are_append_only_across_repeated_deliveries(client, db_session):
     for _ in range(2):
         response = client.post(
             "/ingest/healthkit",
@@ -89,4 +89,35 @@ def test_ingest_is_append_only_across_repeated_deliveries(client, db_session):
 
     assert db_session.query(IngestEvent).count() == 2
     assert db_session.query(StepSample).count() == 4
-    assert db_session.query(Workout).count() == 2
+
+
+def test_workouts_are_deduped_across_repeated_deliveries(client, db_session):
+    """Export automations resend a rolling window on every run — a
+    workout with the same start/end arriving twice must not create a
+    second row, since a duplicate row would trigger a duplicate,
+    irreversible session roll downstream."""
+    for _ in range(2):
+        response = client.post(
+            "/ingest/healthkit",
+            content=json.dumps(SAMPLE_PAYLOAD),
+            headers=auth_headers(),
+        )
+        assert response.status_code == 200
+
+    assert db_session.query(Workout).count() == 1
+    assert db_session.query(WorkoutRoutePoint).count() == 2
+
+
+def test_workout_without_id_is_accepted(client, db_session):
+    payload = json.loads(json.dumps(SAMPLE_PAYLOAD))
+    del payload["data"]["workouts"][0]["id"]
+
+    response = client.post(
+        "/ingest/healthkit",
+        content=json.dumps(payload),
+        headers=auth_headers(),
+    )
+    assert response.status_code == 200
+
+    workout = db_session.query(Workout).one()
+    assert workout.external_id is None

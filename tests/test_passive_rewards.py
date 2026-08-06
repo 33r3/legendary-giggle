@@ -21,7 +21,7 @@ def make_config(db_session) -> PassiveTierConfig:
     return config
 
 
-def add_step_sample(db_session, day: date, source: str, qty: float) -> None:
+def add_step_sample(db_session, day: date, source: str, qty: float, hour: int = 8) -> None:
     event = IngestEvent(raw_payload="{}")
     db_session.add(event)
     db_session.flush()
@@ -29,8 +29,8 @@ def add_step_sample(db_session, day: date, source: str, qty: float) -> None:
         StepSample(
             ingest_event_id=event.id,
             source=source,
-            period_start=datetime(day.year, day.month, day.day, 8, tzinfo=timezone.utc),
-            period_end=datetime(day.year, day.month, day.day, 8, tzinfo=timezone.utc),
+            period_start=datetime(day.year, day.month, day.day, hour, tzinfo=timezone.utc),
+            period_end=datetime(day.year, day.month, day.day, hour, tzinfo=timezone.utc),
             quantity=qty,
             units="count",
         )
@@ -67,14 +67,26 @@ def test_dedup_takes_max_across_sources_not_sum(db_session):
 def test_recompute_is_idempotent_and_overwrites(db_session):
     config = make_config(db_session)
     day = date(2026, 8, 1)
-    add_step_sample(db_session, day, "Test iPhone", 2000)
+    add_step_sample(db_session, day, "Test iPhone", 2000, hour=8)
 
     first = recompute_passive_award(db_session, day)
     assert first.steps_counted == 2000
     assert first.fragments_awarded == compute_fragments(2000, config)
 
-    add_step_sample(db_session, day, "Test iPhone", 4000)
+    # A genuinely distinct period (different hour) for the same source
+    # should still add on top, not replace.
+    add_step_sample(db_session, day, "Test iPhone", 4000, hour=14)
     second = recompute_passive_award(db_session, day)
 
     assert second.id == first.id
     assert second.steps_counted == 6000
+
+
+def test_redelivered_sample_does_not_inflate_total(db_session):
+    """Export automations resend the same rolling window on every run —
+    the exact same (source, period) arriving twice must not double-count."""
+    day = date(2026, 8, 1)
+    add_step_sample(db_session, day, "Test iPhone", 2000, hour=8)
+    add_step_sample(db_session, day, "Test iPhone", 2000, hour=8)  # redelivery
+
+    assert dedup_daily_steps(db_session, day) == 2000

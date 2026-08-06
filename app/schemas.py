@@ -40,7 +40,7 @@ class RoutePoint(BaseModel):
 
 
 class WorkoutPayload(BaseModel):
-    id: str
+    id: str | None = None
     name: str
     source: str = "unknown"
     start: datetime

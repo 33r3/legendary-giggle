@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import IngestEvent, StepSample, Workout, WorkoutRoutePoint
@@ -9,9 +10,16 @@ STEP_METRIC_NAME = "step_count"
 def persist_ingest_payload(db: Session, raw_body: str, payload: IngestPayload) -> IngestEvent:
     """Write one webhook delivery to raw storage, unmodified and in full.
 
-    Never updates or deduplicates existing rows — append-only. Any
-    reward-relevant aggregation (e.g. cross-source step dedup) happens
+    The ingest event and step samples are never deduplicated — append-only.
+    Any reward-relevant aggregation (e.g. cross-source step dedup) happens
     later, in the derived layer, computed from this raw data.
+
+    Workouts are the one exception: export automations typically resend a
+    rolling window on every run, and unlike passive Fragments, session
+    rolls involve genuine randomness that's never recomputed once
+    persisted — so a duplicate workout row would mean a real duplicate
+    payout, not just a duplicate raw record. Dedup happens here, before
+    that row can ever reach roll processing.
     """
     event = IngestEvent(raw_payload=raw_body)
     db.add(event)
@@ -33,6 +41,15 @@ def persist_ingest_payload(db: Session, raw_body: str, payload: IngestPayload) -
             )
 
     for workout_payload in payload.data.workouts:
+        already_ingested = db.execute(
+            select(Workout).where(
+                Workout.start_time == workout_payload.start,
+                Workout.end_time == workout_payload.end,
+            )
+        ).scalar_one_or_none()
+        if already_ingested is not None:
+            continue
+
         duration_seconds = (workout_payload.end - workout_payload.start).total_seconds()
         workout = Workout(
             ingest_event_id=event.id,

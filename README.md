@@ -41,16 +41,23 @@ uvicorn app.main:app --reload
 ## Ingest
 
 `POST /ingest/healthkit` accepts a JSON export payload (step-count metrics
-and workouts, following the shape produced by common HealthKit export apps
-that support posting to a custom REST endpoint) and requires
-`Authorization: Bearer <INGEST_WEBHOOK_TOKEN>`.
+and workouts) matching the shape produced by the Health Auto Export app's
+REST API automation, and requires `Authorization: Bearer
+<INGEST_WEBHOOK_TOKEN>`. Workouts have no stable id or source field in
+that app's export — the schema treats both as optional.
 
 Every delivery is stored verbatim in `raw_ingest_events`, plus parsed into
-`raw_step_samples`, `raw_workouts`, and `raw_workout_route_points`. Nothing
-is deduplicated or updated at ingest time — per the project's raw-data
-invariant, cross-source step dedup and any other aggregation happens later
-in a derived layer, computed from this raw data, so retuning it never
+`raw_step_samples`, `raw_workouts`, and `raw_workout_route_points`. Step
+samples are never deduplicated or updated at ingest time — cross-source
+and cross-delivery dedup happens later, in the derived layer, computed
+from this raw data (see `dedup_daily_steps`), so retuning it never
 requires re-ingesting.
+
+Workouts are the one exception: a workout with the same start/end as one
+already ingested is skipped rather than appended, because export
+automations typically resend a rolling window on every run, and unlike
+passive Fragments, a session roll is never recomputed once it happens —
+a duplicate workout row would mean a duplicate, permanent payout.
 
 ## Content and tuning values
 

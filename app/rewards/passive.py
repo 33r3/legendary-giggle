@@ -13,22 +13,35 @@ from app.models import PassiveFragmentAward, PassiveTierConfig, StepSample
 
 def dedup_daily_steps(db: Session, day: date) -> int:
     """Approximates a HealthKit statistics-query total from raw,
-    per-source samples: take the max across sources rather than summing
-    them, since summing double-counts when a step is seen by more than
-    one source. This is an interim heuristic — validate against the
-    Health app before trusting it at scale.
+    per-source samples.
+
+    Two dedup passes, for two different reasons:
+    1. Collapse repeated deliveries of the same (source, period) sample to
+       its max rather than summing — export automations typically resend
+       a rolling window on every run, so the same period can legitimately
+       arrive many times.
+    2. Take the max across sources rather than summing them, since
+       summing double-counts a step seen by more than one device.
+
+    This is an interim heuristic — validate against the Health app before
+    trusting it at scale.
     """
     start = datetime.combine(day, time.min, tzinfo=timezone.utc)
     end = start + timedelta(days=1)
 
     rows = db.execute(
-        select(StepSample.source, StepSample.quantity).where(
+        select(StepSample.source, StepSample.period_start, StepSample.quantity).where(
             StepSample.period_start >= start, StepSample.period_start < end
         )
     ).all()
 
+    max_per_source_period: dict[tuple[str, datetime], float] = {}
+    for source, period_start, quantity in rows:
+        key = (source, period_start)
+        max_per_source_period[key] = max(max_per_source_period.get(key, 0.0), quantity)
+
     totals_by_source: dict[str, float] = {}
-    for source, quantity in rows:
+    for (source, _period_start), quantity in max_per_source_period.items():
         totals_by_source[source] = totals_by_source.get(source, 0.0) + quantity
 
     if not totals_by_source:
