@@ -25,3 +25,17 @@ def generate_passive_tier_params(seed: str) -> dict[str, int]:
         "steps_per_fragment": _pick(seed, "steps_per_fragment", _STEPS_PER_FRAGMENT_CANDIDATES),
         "daily_cap_fragments": _pick(seed, "daily_cap_fragments", _DAILY_CAP_FRAGMENTS_CANDIDATES),
     }
+
+
+# The 15-minute roll interval is fixed by the design doc (already public);
+# only the per-session cap is a tunable balance number, so only it is
+# seed-generated.
+_ROLL_INTERVAL_MINUTES = 15
+_MAX_ROLLS_PER_SESSION_CANDIDATES = [2, 3, 4, 5, 6]
+
+
+def generate_session_tier_params(seed: str) -> dict[str, int]:
+    return {
+        "roll_interval_minutes": _ROLL_INTERVAL_MINUTES,
+        "max_rolls_per_session": _pick(seed, "max_rolls_per_session", _MAX_ROLLS_PER_SESSION_CANDIDATES),
+    }

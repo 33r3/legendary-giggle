@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./data/raw.db"
     ingest_webhook_token: str = "changeme"
     game_seed: str = "dev-local"
+    regions_geojson_path: str = "./data/regions.geojson"
 
 
 @lru_cache

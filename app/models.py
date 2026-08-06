@@ -102,3 +102,34 @@ class PassiveFragmentAward(Base):
     computed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+
+class Region(Base):
+    """A location-seeded drop-table boundary. Flat for now — hierarchy is
+    a later schema decision that needs real region data to make well.
+
+    Geometry and naming come from an operator-supplied data source at
+    load time (see scripts/load_regions.py), not from literals in code.
+    """
+
+    __tablename__ = "regions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    slug: Mapped[str] = mapped_column(String(64), unique=True)
+    name: Mapped[str] = mapped_column(String(255))
+    polygon_geojson: Mapped[str] = mapped_column(Text)
+    loaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class SessionTierConfig(Base):
+    """A version of the session-tier roll mechanic. Same versioning
+    discipline as PassiveTierConfig: never mutated, retunes insert a new
+    row effective from that point."""
+
+    __tablename__ = "session_tier_configs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    roll_interval_minutes: Mapped[int] = mapped_column(Integer)
+    max_rolls_per_session: Mapped[int] = mapped_column(Integer)
+    effective_from: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

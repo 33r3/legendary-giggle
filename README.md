@@ -11,8 +11,12 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
   safe to recompute. The reward curve's actual numbers are generated from a
   seed at deploy time rather than committed (see "Content and tuning values"
   below), same as regions and drop tables will be.
-
-Session tier, regions, and drop tables aren't built yet.
+- Phase 4 (session tier, partial): region polygon loading and time-weighted
+  route attribution (bucketing a workout's minutes by region), plus the
+  roll-count mechanic (how many table rolls a session earns per region).
+  Region boundaries are flat for now — hierarchy is a later schema decision.
+  Rolling against actual drop tables (the content layer: item names, rarity,
+  odds) isn't built yet.
 
 ## Running locally
 
@@ -56,6 +60,19 @@ day is fully recomputed from raw, never accumulated) with:
 ```
 python scripts/recompute_passive.py 2026-08-01 2026-08-07
 ```
+
+Region boundaries are different: only the player knows their own real-world
+geography, so they aren't generated — they're supplied as a GeoJSON
+`FeatureCollection` (`REGIONS_GEOJSON_PATH`, default `./data/regions.geojson`,
+never committed) where each feature has `properties.slug`, `properties.name`,
+and a `Polygon` geometry. Load it with:
+
+```
+python scripts/load_regions.py
+```
+
+Invalid geometry fails loudly at load time rather than silently corrupting
+attribution later.
 
 ## Migrations
 
