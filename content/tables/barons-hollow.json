@@ -1,0 +1,41 @@
+{
+  "region_slug": "barons-hollow",
+  "bands": [
+    {
+      "tier": "common",
+      "roll_min": 1,
+      "roll_max": 56,
+      "items": ["Sun-Warmed Creek Stone", "Frayed Kite String", "Bottle Cap"]
+    },
+    {
+      "tier": "uncommon",
+      "roll_min": 57,
+      "roll_max": 84,
+      "items": ["Cypress Knee Carving", "Dragonfly Wing Husk"]
+    },
+    {
+      "tier": "rare",
+      "roll_min": 85,
+      "roll_max": 95,
+      "items": ["Swimming Hole Coin"]
+    },
+    {
+      "tier": "very_rare",
+      "roll_min": 96,
+      "roll_max": 99,
+      "items": ["Amphitheater Program"]
+    },
+    {
+      "tier": "signature",
+      "roll_min": 100,
+      "roll_max": 100,
+      "items": ["Baron's Creek Pearl"]
+    },
+    {
+      "tier": "beyond",
+      "roll_min": 101,
+      "roll_max": 115,
+      "items": ["The Last Firefly"]
+    }
+  ]
+}

@@ -133,3 +133,49 @@ class SessionTierConfig(Base):
     max_rolls_per_session: Mapped[int] = mapped_column(Integer)
     effective_from: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class DropTable(Base):
+    """A region's drop table. One per region for now — inheritance across
+    a region hierarchy is a later schema decision, same as the hierarchy
+    itself."""
+
+    __tablename__ = "drop_tables"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    region_id: Mapped[int] = mapped_column(ForeignKey("regions.id"), unique=True)
+    loaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    bands: Mapped[list["DropTableBand"]] = relationship(
+        back_populates="drop_table", cascade="all, delete-orphan", order_by="DropTableBand.roll_min"
+    )
+
+
+class DropTableBand(Base):
+    """One roll-range band within a table (e.g. common, rare, ...)."""
+
+    __tablename__ = "drop_table_bands"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    drop_table_id: Mapped[int] = mapped_column(ForeignKey("drop_tables.id"))
+    tier: Mapped[str] = mapped_column(String(32))
+    roll_min: Mapped[int] = mapped_column(Integer)
+    roll_max: Mapped[int] = mapped_column(Integer)
+
+    drop_table: Mapped[DropTable] = relationship(back_populates="bands")
+    items: Mapped[list["DropTableItem"]] = relationship(
+        back_populates="band", cascade="all, delete-orphan"
+    )
+
+
+class DropTableItem(Base):
+    """One possible result within a band. A roll landing in the band picks
+    uniformly among its items."""
+
+    __tablename__ = "drop_table_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    band_id: Mapped[int] = mapped_column(ForeignKey("drop_table_bands.id"))
+    name: Mapped[str] = mapped_column(String(255))
+
+    band: Mapped[DropTableBand] = relationship(back_populates="items")

@@ -1,0 +1,41 @@
+{
+  "region_slug": "enchanted-rock",
+  "bands": [
+    {
+      "tier": "common",
+      "roll_min": 1,
+      "roll_max": 48,
+      "items": ["Granite Flake", "Lichen Sample", "Quartz Grit"]
+    },
+    {
+      "tier": "uncommon",
+      "roll_min": 49,
+      "roll_max": 78,
+      "items": ["Pink Feldspar", "Vernal Pool Sample"]
+    },
+    {
+      "tier": "rare",
+      "roll_min": 79,
+      "roll_max": 92,
+      "items": ["Exfoliation Slab"]
+    },
+    {
+      "tier": "very_rare",
+      "roll_min": 93,
+      "roll_max": 98,
+      "items": ["Batholith Core"]
+    },
+    {
+      "tier": "signature",
+      "roll_min": 99,
+      "roll_max": 100,
+      "items": ["Singing Stone"]
+    },
+    {
+      "tier": "beyond",
+      "roll_min": 101,
+      "roll_max": 115,
+      "items": ["Batholith Heart"]
+    }
+  ]
+}

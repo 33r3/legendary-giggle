@@ -1,0 +1,41 @@
+{
+  "region_slug": "old-tunnel",
+  "bands": [
+    {
+      "tier": "common",
+      "roll_min": 1,
+      "roll_max": 52,
+      "items": ["Rail Spike Fragment", "Guano-Streaked Pebble", "Creosote Splinter"]
+    },
+    {
+      "tier": "uncommon",
+      "roll_min": 53,
+      "roll_max": 80,
+      "items": ["Moth Wing Scale Sample", "Cave Cricket Husk"]
+    },
+    {
+      "tier": "rare",
+      "roll_min": 81,
+      "roll_max": 93,
+      "items": ["Echolocation Click Recording"]
+    },
+    {
+      "tier": "very_rare",
+      "roll_min": 94,
+      "roll_max": 98,
+      "items": ["Tunnel Survey Marker"]
+    },
+    {
+      "tier": "signature",
+      "roll_min": 99,
+      "roll_max": 100,
+      "items": ["The Emergence"]
+    },
+    {
+      "tier": "beyond",
+      "roll_min": 101,
+      "roll_max": 115,
+      "items": ["Old 87 Whistle"]
+    }
+  ]
+}

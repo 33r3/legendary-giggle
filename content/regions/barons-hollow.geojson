@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "slug": "barons-hollow",
+        "name": "Baron's Hollow"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-98.8990, 30.2355],
+            [-98.8850, 30.2355],
+            [-98.8850, 30.2445],
+            [-98.8990, 30.2445],
+            [-98.8990, 30.2355]
+          ]
+        ]
+      }
+    }
+  ]
+}

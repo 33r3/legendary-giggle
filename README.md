@@ -11,12 +11,13 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
   safe to recompute. The reward curve's actual numbers are generated from a
   seed at deploy time rather than committed (see "Content and tuning values"
   below).
-- Phase 4 (session tier, partial): region polygon loading (from committed
-  files under `content/regions/`) and time-weighted route attribution
-  (bucketing a workout's minutes by region), plus the roll-count mechanic
-  (how many table rolls a session earns per region). Region boundaries are
-  flat for now — hierarchy is a later schema decision. Rolling against
-  actual drop tables isn't built yet.
+- Phase 4 (session tier): region polygon loading (from committed files
+  under `content/regions/`), time-weighted route attribution (bucketing a
+  workout's minutes by region), the roll-count mechanic (how many table
+  rolls a session earns per region), and drop tables (`content/tables/`,
+  one per region) with a pure roll-resolution function. Region boundaries
+  are flat for now — hierarchy is a later schema decision. Not built yet:
+  actually persisting/awarding roll results from a real workout.
 
 ## Running locally
 
@@ -78,6 +79,14 @@ python scripts/load_regions.py
 
 Invalid geometry fails loudly at load time rather than silently corrupting
 attribution later.
+
+Then load drop tables from `content/tables/*.json` (safe to rerun — each
+region's bands/items are fully replaced; requires that region's boundary
+to already be loaded) with:
+
+```
+python scripts/load_drop_tables.py
+```
 
 ## Migrations
 
