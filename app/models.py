@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -70,3 +70,35 @@ class WorkoutRoutePoint(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     workout: Mapped[Workout] = relationship(back_populates="route_points")
+
+
+class PassiveTierConfig(Base):
+    """A version of the passive-tier reward curve. Never mutated after
+    creation — a retune inserts a new row effective from that point, so
+    past days always recompute against the curve that was live then."""
+
+    __tablename__ = "passive_tier_configs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    floor_steps: Mapped[int] = mapped_column(Integer)
+    steps_per_fragment: Mapped[int] = mapped_column(Integer)
+    daily_cap_fragments: Mapped[int] = mapped_column(Integer)
+    effective_from: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PassiveFragmentAward(Base):
+    """Derived, recomputable: one row per day, dropped and rebuilt whenever
+    the passive tier is recomputed from raw step data."""
+
+    __tablename__ = "passive_fragment_awards"
+    __table_args__ = (UniqueConstraint("award_date", name="uq_passive_fragment_awards_date"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    award_date: Mapped[date] = mapped_column(Date)
+    steps_counted: Mapped[int] = mapped_column(Integer)
+    fragments_awarded: Mapped[int] = mapped_column(Integer)
+    config_id: Mapped[int] = mapped_column(ForeignKey("passive_tier_configs.id"))
+    computed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

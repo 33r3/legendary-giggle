@@ -4,10 +4,15 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
 
 ## Status
 
-Phase 2 (minimal ingest) scaffold: a FastAPI webhook that receives HealthKit
-export data and writes it to append-only raw storage. No reward computation,
-regions, or drop tables live here — those are derived layers built on top of
-this raw data later.
+- Phase 2 (minimal ingest): a FastAPI webhook that receives HealthKit export
+  data and writes it to append-only raw storage.
+- Phase 3 (passive tier): Fragment accrual from ambient step counts, computed
+  as a derived layer from raw steps — never written during ingestion, always
+  safe to recompute. The reward curve's actual numbers are generated from a
+  seed at deploy time rather than committed (see "Content and tuning values"
+  below), same as regions and drop tables will be.
+
+Session tier, regions, and drop tables aren't built yet.
 
 ## Running locally
 
@@ -33,6 +38,24 @@ is deduplicated or updated at ingest time — per the project's raw-data
 invariant, cross-source step dedup and any other aggregation happens later
 in a derived layer, computed from this raw data, so retuning it never
 requires re-ingesting.
+
+## Content and tuning values
+
+Region, item, and reward-curve values are generated from `GAME_SEED`, not
+committed as literals — set a real seed in production and keep it out of
+version control. After migrating, materialize the current passive-tier
+curve with:
+
+```
+python scripts/materialize_economy.py
+```
+
+Recompute Fragment awards for a date range (safe to rerun any time; each
+day is fully recomputed from raw, never accumulated) with:
+
+```
+python scripts/recompute_passive.py 2026-08-01 2026-08-07
+```
 
 ## Migrations
 
