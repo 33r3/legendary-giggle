@@ -1,12 +1,11 @@
-"""Loads region boundaries from an operator-supplied GeoJSON file.
+"""Loads region boundaries from committed GeoJSON files under content/regions/.
 
 Geometry (and the real-world places it corresponds to) is something only
-the player can supply — this module just validates and persists it. The
-file itself is never committed; point it at a local path via
-REGIONS_GEOJSON_PATH.
+the player can supply — this module just validates and persists it.
 """
 
 import json
+from pathlib import Path
 
 from shapely.geometry import shape
 from shapely.validation import explain_validity
@@ -56,4 +55,11 @@ def load_regions(db: Session, geojson_text: str) -> list[Region]:
     db.commit()
     for region in loaded:
         db.refresh(region)
+    return loaded
+
+
+def load_regions_from_dir(db: Session, content_dir: str) -> list[Region]:
+    loaded: list[Region] = []
+    for path in sorted(Path(content_dir).glob("*.geojson")):
+        loaded.extend(load_regions(db, path.read_text(encoding="utf-8")))
     return loaded

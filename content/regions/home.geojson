@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "slug": "home",
+        "name": "Home Ground"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-98.790475, 30.2125861],
+            [-98.7859111, 30.2125861],
+            [-98.7859111, 30.2235639],
+            [-98.790475, 30.2235639],
+            [-98.790475, 30.2125861]
+          ]
+        ]
+      }
+    }
+  ]
+}
