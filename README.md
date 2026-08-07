@@ -30,6 +30,10 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
   minutes that period. A declaration always applies to the period after
   whichever one is current, so it can never target an already-started
   period. Missing the target forfeits the bonus with no other penalty.
+- A web dashboard (`GET /`, HTTP Basic auth) — the same status
+  information as `scripts/status.py`, plus buttons to unlock a region,
+  declare next period's wager, and trigger a manual refresh. Same
+  FastAPI app, no separate service or JS build.
 
 ## Running locally
 
@@ -187,13 +191,18 @@ see `deploy/README.md`.
 
 ## Checking your status
 
-There's no UI yet — this is the only way to see where things stand:
-Fragment balance and recent activity, region unlock state and costs,
-recent items found, and wager status.
+Two ways to see where things stand — same underlying data
+(`app/status.py`), either works:
 
 ```
 python scripts/status.py
 ```
+
+or run the app (`uvicorn app.main:app --reload`) and open `http://127.0.0.1:8000/`,
+prompting for `WEB_UI_USERNAME` / `WEB_UI_PASSWORD` (set in `.env`). The
+web dashboard also has buttons to unlock a region, declare next
+period's wager, and trigger the same refresh as
+`process_sessions.py` + `resolve_wager_payoffs.py` combined.
 
 ## Deployment
 

@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     ingest_webhook_token: str = "changeme"
     game_seed: str = "dev-local"
     regions_content_dir: str = "./content/regions"
+    web_ui_username: str = "player"
+    web_ui_password: str = "changeme"
 
 
 @lru_cache

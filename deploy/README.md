@@ -33,7 +33,7 @@ sudo -u exercise-rpg .venv/bin/pip install -e ".[dev]"
 
 ## 3. Secrets
 
-There are exactly two things that need to be secret, plus one path that's
+There are three things that need to be secret, plus one path that's
 environment-specific. Generate them and write `/etc/exercise-rpg/exercise-rpg.env`:
 
 ```
@@ -41,6 +41,8 @@ sudo tee /etc/exercise-rpg/exercise-rpg.env > /dev/null <<EOF
 DATABASE_URL=sqlite:////var/lib/exercise-rpg/raw.db
 INGEST_WEBHOOK_TOKEN=$(openssl rand -hex 32)
 GAME_SEED=$(openssl rand -hex 16)
+WEB_UI_USERNAME=player
+WEB_UI_PASSWORD=$(openssl rand -hex 16)
 EOF
 sudo chown exercise-rpg:exercise-rpg /etc/exercise-rpg/exercise-rpg.env
 sudo chmod 600 /etc/exercise-rpg/exercise-rpg.env
@@ -69,6 +71,10 @@ which is exactly what produces `unable to open database file`.
   password manager is fine); it's not committed anywhere.
 - **`DATABASE_URL`** — not secret, just environment-specific (points at
   the real DB path instead of the local dev default).
+- **`WEB_UI_USERNAME`** / **`WEB_UI_PASSWORD`** — HTTP Basic auth for the
+  web dashboard at `/`. It's on the same public domain as the ingest
+  webhook, so this is the only thing standing between the internet and
+  your Fragment balance — don't leave the example password in place.
 
 This file is never in git — it's the one artifact from this whole setup
 that has to be created by hand on the box, and it's the only thing you'd
@@ -169,7 +175,21 @@ https://your.actual.domain/ingest/healthkit
 
 with header `Authorization: Bearer <INGEST_WEBHOOK_TOKEN from step 3>`.
 
-## 9. Backups
+## 9. Access the dashboard
+
+```
+https://your.actual.domain/
+```
+
+Prompts for the `WEB_UI_USERNAME` / `WEB_UI_PASSWORD` from step 3 (your
+browser will remember them). Shows Fragment balance, region unlock
+state and costs (with an unlock button for anywhere you can afford),
+recent finds, and wager status, and has a "Refresh now" button that
+runs the same session-processing and wager-resolution logic as the
+timers from step 5 — useful right after a walk if you don't want to
+wait for the next scheduled tick.
+
+## 10. Backups
 
 Raw health data is append-only and irreplaceable — back it up.
 
@@ -227,4 +247,5 @@ sudo -u exercise-rpg /opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/script
 ```
 
 Both are safe to run any time — already-processed workouts and
-already-resolved periods are left untouched.
+already-resolved periods are left untouched. The dashboard's "Refresh
+now" button (step 9) does the same thing without needing SSH.

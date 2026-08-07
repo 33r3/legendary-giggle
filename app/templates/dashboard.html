@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exercise RPG</title>
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --card-bg: #ffffff;
+      --text: #1a1a1a;
+      --muted: #6b6b6b;
+      --border: #e2e2e0;
+      --accent: #2f6f4f;
+      --accent-text: #ffffff;
+      --danger: #a3372e;
+      --locked: #9a6b1f;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #16181a;
+        --card-bg: #1f2225;
+        --text: #eaeaea;
+        --muted: #9a9a9a;
+        --border: #33373b;
+        --accent: #4c9d74;
+        --accent-text: #0d1410;
+        --danger: #e0665c;
+        --locked: #d4a24c;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 3rem;
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 1.25rem; }
+    h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 0.6rem; }
+    section.card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .balance { font-size: 1.8rem; font-weight: 600; }
+    ul { list-style: none; margin: 0; padding: 0; }
+    li { padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+    li:last-child { border-bottom: none; }
+    .row { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; }
+    .muted { color: var(--muted); font-size: 0.85rem; }
+    .tag { font-size: 0.78rem; color: var(--muted); }
+    .status-unlocked { color: var(--accent); font-weight: 600; }
+    .status-locked { color: var(--locked); }
+    form.inline { display: inline; }
+    button, select {
+      font: inherit;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      padding: 0.35rem 0.6rem;
+    }
+    button.primary {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+      cursor: pointer;
+    }
+    button.primary:hover { opacity: 0.9; }
+    .wager-form { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    .flash {
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+    .flash.ok { background: color-mix(in srgb, var(--accent) 18%, var(--card-bg)); border: 1px solid var(--accent); }
+    .flash.error { background: color-mix(in srgb, var(--danger) 18%, var(--card-bg)); border: 1px solid var(--danger); }
+    .refresh-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Exercise RPG</h1>
+
+    {% if message %}<div class="flash ok">{{ message }}</div>{% endif %}
+    {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+
+    <div class="refresh-row">
+      <form method="post" action="/refresh">
+        <button class="primary" type="submit">Refresh now</button>
+      </form>
+    </div>
+
+    <section class="card">
+      <h2>Fragments</h2>
+      <div class="balance">{{ balance }}</div>
+      {% if recent_activity %}
+        <ul style="margin-top: 0.75rem;">
+          {% for entry in recent_activity %}
+            <li class="row">
+              <span>{{ entry.kind }}{% if entry.note %} — {{ entry.note }}{% endif %}</span>
+              <span class="tag">{{ "+" if entry.amount >= 0 else "" }}{{ entry.amount }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Regions</h2>
+      <ul>
+        {% for status in regions %}
+          <li class="row">
+            <span>{{ status.region.name }}</span>
+            {% if status.unlocked %}
+              <span class="status-unlocked">unlocked</span>
+            {% else %}
+              <span class="row" style="gap: 0.5rem;">
+                <span class="status-locked">{{ status.region.unlock_cost_fragments }} Fragments</span>
+                <form class="inline" method="post" action="/regions/{{ status.region.slug }}/unlock">
+                  <button type="submit">Unlock</button>
+                </form>
+              </span>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Recent finds</h2>
+      {% if finds %}
+        <ul>
+          {% for entry in finds %}
+            <li class="row">
+              <span>{{ entry.result.item_name }} <span class="tag">({{ entry.result.tier }})</span></span>
+              <span class="muted">{{ entry.region_name }} · {{ entry.result.rolled_at.strftime("%b %d, %H:%M") }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">Nothing yet.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Wager</h2>
+      {% if wager_declaration %}
+        <p>Declared: <strong>{{ wager_declaration.tier }}</strong> for the period starting {{ wager_declaration.period_start }}</p>
+      {% else %}
+        <p class="muted">No wager declared.</p>
+      {% endif %}
+
+      {% if wager_payoff %}
+        <p class="muted">
+          Last resolved ({{ wager_payoff.period_start }}):
+          {% if wager_payoff.hit_target and wager_payoff.item_name %}
+            hit target ({{ wager_payoff.qualifying_sessions }} sessions) — payoff: {{ wager_payoff.item_name }} ({{ wager_payoff.tier_result }})
+          {% elif wager_payoff.hit_target %}
+            hit target but no region was available to roll against
+          {% else %}
+            missed target ({{ wager_payoff.qualifying_sessions }} sessions)
+          {% endif %}
+        </p>
+      {% endif %}
+
+      <form class="wager-form" method="post" action="/wager/declare">
+        <select name="tier">
+          <option value="modest">modest</option>
+          <option value="standard">standard</option>
+          <option value="ambitious">ambitious</option>
+        </select>
+        <button class="primary" type="submit">Declare for next period</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>
