@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "slug": "concourse",
+        "name": "The Concourse"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-98.3709136, 29.5982709],
+            [-98.3651861, 29.5982709],
+            [-98.3651861, 29.6029602],
+            [-98.3709136, 29.6029602],
+            [-98.3709136, 29.5982709]
+          ]
+        ]
+      }
+    }
+  ]
+}
