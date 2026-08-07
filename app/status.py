@@ -3,12 +3,12 @@ dashboard — one source of truth for what "current status" means.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import FragmentLedgerEntry, Region, WagerDeclaration, WagerPayoff, WorkoutRollResult
+from app.models import FragmentLedgerEntry, PassiveFragmentAward, Region, WagerDeclaration, WagerPayoff, WorkoutRollResult
 from app.rewards.fragments import current_fragment_balance
 from app.rewards.unlocks import is_region_unlocked
 
@@ -41,6 +41,20 @@ def recent_fragment_activity(db: Session, limit: int = 5) -> list[FragmentLedger
     return db.execute(
         select(FragmentLedgerEntry).order_by(FragmentLedgerEntry.occurred_at.desc()).limit(limit)
     ).scalars().all()
+
+
+def daily_passive_awards(
+    db: Session, start: date | None = None, end: date | None = None
+) -> list[PassiveFragmentAward]:
+    """Every day's passive award, oldest first — the actual per-day
+    steps-counted/fragments-awarded breakdown, not just the running
+    balance."""
+    query = select(PassiveFragmentAward).order_by(PassiveFragmentAward.award_date)
+    if start is not None:
+        query = query.where(PassiveFragmentAward.award_date >= start)
+    if end is not None:
+        query = query.where(PassiveFragmentAward.award_date <= end)
+    return db.execute(query).scalars().all()
 
 
 def region_statuses(db: Session) -> list[RegionStatus]:

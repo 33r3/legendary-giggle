@@ -133,6 +133,14 @@ In production this runs on a timer (`deploy/systemd/`) — see
 there is for session rolls; passive accrual only becomes real Fragments
 once something recomputes it.
 
+See the per-day breakdown behind any total (steps counted and Fragments
+awarded for each day on record) with:
+
+```
+python scripts/daily_passive_report.py                    # everything on record
+python scripts/daily_passive_report.py 2026-08-01 2026-08-07
+```
+
 Load all region boundaries from `content/regions/*.geojson` (safe to rerun
 — upserts by slug) with:
 
