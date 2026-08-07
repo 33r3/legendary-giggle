@@ -35,7 +35,11 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
 - A web dashboard (`GET /`, HTTP Basic auth) — the same status
   information as `scripts/status.py`, plus buttons to unlock a region,
   declare next period's wager, and trigger a manual refresh. Same
-  FastAPI app, no separate service or JS build.
+  FastAPI app, no separate service or JS build. Includes a map of every
+  region's real boundary, locked vs. unlocked — rendered as inline SVG
+  from the loaded polygons server-side, no basemap tiles and no
+  third-party mapping service (self-hosted only), so nothing about the
+  page ever calls out to the internet.
 
 ## Running locally
 
