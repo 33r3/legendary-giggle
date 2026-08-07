@@ -83,6 +83,18 @@ with:
 python scripts/reparse_ingest_events.py
 ```
 
+That's for deliveries that failed to parse. A payload that parsed fine
+under an *older* schema (e.g. before a new field like `distance` was
+added) isn't in that queue at all — it already "succeeded." For that
+case, a one-off backfill script re-derives the new field from the still-
+intact raw payload without creating new rows or re-triggering rolls; see
+`scripts/backfill_workout_distance.py` for the pattern if another field
+ever needs the same treatment.
+
+```
+python scripts/backfill_workout_distance.py
+```
+
 ## Content and tuning values
 
 Two different storage rules apply here, by design:
