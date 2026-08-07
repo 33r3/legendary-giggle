@@ -78,8 +78,8 @@ def apply_parsed_payload(db: Session, event: IngestEvent, payload: IngestPayload
                 WorkoutRoutePoint(
                     workout_id=workout.id,
                     sequence_index=index,
-                    latitude=point.lat,
-                    longitude=point.lon,
+                    latitude=point.latitude,
+                    longitude=point.longitude,
                     altitude=point.altitude,
                     recorded_at=point.timestamp,
                 )

@@ -25,8 +25,8 @@ SAMPLE_PAYLOAD = {
                 "start": "2026-08-06 09:00:00 -0500",
                 "end": "2026-08-06 09:20:00 -0500",
                 "route": [
-                    {"lat": 1.111, "lon": 2.222, "altitude": 300.0, "timestamp": "2026-08-06 09:00:05 -0500"},
-                    {"lat": 1.112, "lon": 2.223, "altitude": 301.0, "timestamp": "2026-08-06 09:00:20 -0500"},
+                    {"latitude": 1.111, "longitude": 2.222, "altitude": 300.0, "timestamp": "2026-08-06 09:00:05 -0500"},
+                    {"latitude": 1.112, "longitude": 2.223, "altitude": 301.0, "timestamp": "2026-08-06 09:00:20 -0500"},
                 ],
             }
         ],

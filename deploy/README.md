@@ -18,7 +18,7 @@ adjust paths if you want something different.
 ```
 sudo useradd --system --create-home --home-dir /opt/exercise-rpg --shell /usr/sbin/nologin exercise-rpg
 sudo mkdir -p /var/lib/exercise-rpg /etc/exercise-rpg
-sudo chown exercise-rpg:exercise-rpg /var/lib/exercise-rpg
+sudo chown exercise-rpg:exercise-rpg /var/lib/exercise-rpg /etc/exercise-rpg
 sudo chmod 700 /etc/exercise-rpg
 ```
 
@@ -44,7 +44,18 @@ GAME_SEED=$(openssl rand -hex 16)
 EOF
 sudo chown exercise-rpg:exercise-rpg /etc/exercise-rpg/exercise-rpg.env
 sudo chmod 600 /etc/exercise-rpg/exercise-rpg.env
+sudo -u exercise-rpg ln -s /etc/exercise-rpg/exercise-rpg.env /opt/exercise-rpg/.env
 ```
+
+That symlink matters: the app loads config from a `.env` file in its working
+directory (`/opt/exercise-rpg`), and this makes every invocation — the
+systemd service, `deploy.sh`, and any one-off script you run by hand —
+pick up the real secrets automatically. Without it, only the systemd
+service (which also gets them via `EnvironmentFile=` in the unit file)
+would see them; a manual `alembic upgrade head` or `python scripts/...`
+run straight in a shell would silently fall back to the built-in dev
+defaults instead — including a relative, never-created SQLite path,
+which is exactly what produces `unable to open database file`.
 
 - **`INGEST_WEBHOOK_TOKEN`** — the shared secret your HealthKit export app
   sends as `Authorization: Bearer <token>`. Read it back out with
@@ -69,8 +80,15 @@ itself you'd restore from backup — see step 7).
 First deploy only for the `materialize_*` scripts — they're not meant to
 be rerun casually (see the note below).
 
+Sanity check before running anything — this should print the real
+`/var/lib/exercise-rpg/raw.db` path, not the local dev default:
+
 ```
 cd /opt/exercise-rpg
+sudo -u exercise-rpg .venv/bin/python -c "from app.config import get_settings; print(get_settings().database_url)"
+```
+
+```
 sudo -u exercise-rpg .venv/bin/alembic upgrade head
 sudo -u exercise-rpg .venv/bin/python scripts/materialize_economy.py
 sudo -u exercise-rpg .venv/bin/python scripts/load_regions.py
@@ -156,8 +174,12 @@ not set up here since it depends on what you've got available.
 After the first setup, routine code updates are:
 
 ```
-sudo -u exercise-rpg /opt/exercise-rpg/deploy/deploy.sh
+/opt/exercise-rpg/deploy/deploy.sh
 ```
+
+Run as yourself, not as `exercise-rpg` and not prefixed with
+`sudo -u exercise-rpg` — the script sudos to that user internally only
+where it needs to (see the comment at the top of the script for why).
 
 This pulls, migrates, and restarts. It does **not** rerun the
 `materialize_*` scripts or reload content — run `load_regions.py` /
