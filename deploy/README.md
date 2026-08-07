@@ -174,8 +174,12 @@ not set up here since it depends on what you've got available.
 After the first setup, routine code updates are:
 
 ```
-sudo -u exercise-rpg /opt/exercise-rpg/deploy/deploy.sh
+/opt/exercise-rpg/deploy/deploy.sh
 ```
+
+Run as yourself, not as `exercise-rpg` and not prefixed with
+`sudo -u exercise-rpg` — the script sudos to that user internally only
+where it needs to (see the comment at the top of the script for why).
 
 This pulls, migrates, and restarts. It does **not** rerun the
 `materialize_*` scripts or reload content — run `load_regions.py` /
