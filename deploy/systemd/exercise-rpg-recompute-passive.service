@@ -1,0 +1,16 @@
+[Unit]
+Description=Recompute exercise-rpg passive-tier Fragment awards
+After=network.target
+
+[Service]
+Type=oneshot
+User=exercise-rpg
+Group=exercise-rpg
+WorkingDirectory=/opt/exercise-rpg
+EnvironmentFile=/etc/exercise-rpg/exercise-rpg.env
+ExecStart=/opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/scripts/recompute_passive.py
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/exercise-rpg

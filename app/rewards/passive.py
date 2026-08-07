@@ -84,3 +84,19 @@ def recompute_passive_award(db: Session, day: date) -> PassiveFragmentAward:
     db.commit()
     db.refresh(award)
     return award
+
+
+def recompute_range(db: Session, start: date, end: date) -> list[PassiveFragmentAward]:
+    awards = []
+    day = start
+    while day <= end:
+        awards.append(recompute_passive_award(db, day))
+        day += timedelta(days=1)
+    return awards
+
+
+def default_recompute_range() -> tuple[date, date]:
+    """Yesterday and today (UTC) — covers a step count still trickling in
+    from an export automation, plus the day-boundary rollover."""
+    today = datetime.now(timezone.utc).date()
+    return today - timedelta(days=1), today
