@@ -18,7 +18,7 @@ adjust paths if you want something different.
 ```
 sudo useradd --system --create-home --home-dir /opt/exercise-rpg --shell /usr/sbin/nologin exercise-rpg
 sudo mkdir -p /var/lib/exercise-rpg /etc/exercise-rpg
-sudo chown exercise-rpg:exercise-rpg /var/lib/exercise-rpg
+sudo chown exercise-rpg:exercise-rpg /var/lib/exercise-rpg /etc/exercise-rpg
 sudo chmod 700 /etc/exercise-rpg
 ```
 
