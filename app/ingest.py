@@ -3,6 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import IngestEvent, StepSample, Workout, WorkoutRoutePoint
+from app.rewards.movement import distance_to_meters
 from app.schemas import IngestPayload
 
 STEP_METRIC_NAME = "step_count"
@@ -61,6 +62,11 @@ def apply_parsed_payload(db: Session, event: IngestEvent, payload: IngestPayload
             continue
 
         duration_seconds = (workout_payload.end - workout_payload.start).total_seconds()
+        distance_meters = (
+            distance_to_meters(workout_payload.distance.qty, workout_payload.distance.units)
+            if workout_payload.distance is not None
+            else None
+        )
         workout = Workout(
             ingest_event_id=event.id,
             external_id=workout_payload.id,
@@ -69,6 +75,7 @@ def apply_parsed_payload(db: Session, event: IngestEvent, payload: IngestPayload
             start_time=workout_payload.start,
             end_time=workout_payload.end,
             duration_seconds=duration_seconds,
+            distance_meters=distance_meters,
         )
         db.add(workout)
         db.flush()

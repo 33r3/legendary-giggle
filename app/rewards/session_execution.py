@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.geo.attribution import LoadedRegion, attribute_route_minutes
 from app.loot.tables import load_table_for_region, resolve_roll
 from app.models import Region, SessionTierConfig, Workout, WorkoutRollResult
+from app.rewards.movement import passes_movement_gate
 from app.rewards.session import session_roll_counts
 from app.rewards.unlocks import is_region_unlocked
 
@@ -30,6 +31,9 @@ def process_session(
     ).scalars().all()
     if existing:
         return list(existing)
+
+    if not passes_movement_gate(workout):
+        return []
 
     rng = rng or random.Random()
 

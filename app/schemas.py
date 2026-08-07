@@ -42,6 +42,11 @@ class RoutePoint(BaseModel):
         return value if isinstance(value, datetime) else _parse_timestamp(value)
 
 
+class QtyWithUnit(BaseModel):
+    qty: float
+    units: str
+
+
 class WorkoutPayload(BaseModel):
     id: str | None = None
     name: str
@@ -49,6 +54,11 @@ class WorkoutPayload(BaseModel):
     start: datetime
     end: datetime
     route: list[RoutePoint] = Field(default_factory=list)
+    distance: QtyWithUnit | None = None
+    # walkingAndRunningDistance also arrives (a richer per-minute
+    # breakdown) but isn't reliably present across workouts — not parsed
+    # here, stays in raw_payload. distance is the simpler, more
+    # consistently-present whole-workout figure this codebase relies on.
 
     @field_validator("start", "end", mode="before")
     @classmethod

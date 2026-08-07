@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.geo.attribution import load_region_polygons, attribute_route_minutes
 from app.loot.tables import load_table_for_region, resolve_roll
 from app.models import Region, WagerConfig, WagerDeclaration, WagerPayoff, Workout
+from app.rewards.movement import passes_movement_gate
 from app.rewards.unlocks import is_region_unlocked
 
 QUALIFYING_SESSION_SECONDS = 15 * 60
@@ -73,34 +74,30 @@ def declare_wager(db: Session, tier: str, now: datetime | None = None) -> WagerD
     return declaration
 
 
-def qualifying_session_count(db: Session, period_start: date) -> int:
+def _qualifying_workouts(db: Session, period_start: date) -> list[Workout]:
+    """Workouts long enough and active enough to count toward the wager —
+    duration alone isn't sufficient, see app/rewards/movement.py."""
     period_start_dt = datetime.combine(period_start, time.min, tzinfo=timezone.utc)
     period_end_dt = period_start_dt + timedelta(days=7)
-    workouts = db.execute(
+    candidates = db.execute(
         select(Workout).where(
             Workout.start_time >= period_start_dt,
             Workout.start_time < period_end_dt,
             Workout.duration_seconds >= QUALIFYING_SESSION_SECONDS,
         )
     ).scalars().all()
-    return len(workouts)
+    return [w for w in candidates if passes_movement_gate(w)]
+
+
+def qualifying_session_count(db: Session, period_start: date) -> int:
+    return len(_qualifying_workouts(db, period_start))
 
 
 def _payoff_region(db: Session, period_start: date) -> int | None:
     """The unlocked region with the most attributed minutes across the
     period's qualifying sessions — that's what the bonus roll counts
     against."""
-    period_start_dt = datetime.combine(period_start, time.min, tzinfo=timezone.utc)
-    period_end_dt = period_start_dt + timedelta(days=7)
-
-    qualifying_workouts = db.execute(
-        select(Workout).where(
-            Workout.start_time >= period_start_dt,
-            Workout.start_time < period_end_dt,
-            Workout.duration_seconds >= QUALIFYING_SESSION_SECONDS,
-        )
-    ).scalars().all()
-
+    qualifying_workouts = _qualifying_workouts(db, period_start)
     loaded_regions = load_region_polygons(db.query(Region).all())
 
     minutes_by_region: dict[int, float] = {}
