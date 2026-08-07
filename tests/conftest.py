@@ -9,6 +9,11 @@ from sqlalchemy.pool import StaticPool
 WEBHOOK_TOKEN = "test-token"
 os.environ["INGEST_WEBHOOK_TOKEN"] = WEBHOOK_TOKEN
 
+WEB_UI_USERNAME = "test-player"
+WEB_UI_PASSWORD = "test-password"
+os.environ["WEB_UI_USERNAME"] = WEB_UI_USERNAME
+os.environ["WEB_UI_PASSWORD"] = WEB_UI_PASSWORD
+
 from app.config import get_settings  # noqa: E402
 from app.db import Base, get_db  # noqa: E402
 from app.main import app  # noqa: E402

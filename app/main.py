@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db import get_db
 from app.ingest import persist_ingest_payload
+from app.web import router as web_router
 
 app = FastAPI(title="exercise-rpg ingest")
+app.include_router(web_router)
 
 
 def verify_webhook_token(authorization: str = Header(...)) -> None:

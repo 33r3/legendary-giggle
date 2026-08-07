@@ -11,11 +11,11 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.geo.attribution import LoadedRegion, attribute_route_minutes
+from app.geo.attribution import LoadedRegion, attribute_route_minutes, load_region_polygons
 from app.loot.tables import load_table_for_region, resolve_roll
 from app.models import Region, SessionTierConfig, Workout, WorkoutRollResult
 from app.rewards.movement import passes_movement_gate
-from app.rewards.session import session_roll_counts
+from app.rewards.session import current_session_tier_config, session_roll_counts
 from app.rewards.unlocks import is_region_unlocked
 
 
@@ -68,3 +68,25 @@ def process_session(
     for result in results:
         db.refresh(result)
     return results
+
+
+def process_pending_sessions(db: Session) -> tuple[int, list[WorkoutRollResult]]:
+    """Processes every workout that doesn't yet have roll results. Safe to
+    rerun — already-processed workouts are left untouched. Returns
+    (workouts processed, all results produced)."""
+    session_config = current_session_tier_config(db)
+    if session_config is None:
+        raise RuntimeError("no session tier config materialized")
+
+    loaded_regions = load_region_polygons(db.query(Region).all())
+
+    processed_workout_ids = {
+        row[0] for row in db.execute(select(WorkoutRollResult.workout_id).distinct())
+    }
+    pending = [w for w in db.query(Workout).all() if w.id not in processed_workout_ids]
+
+    all_results: list[WorkoutRollResult] = []
+    for workout in pending:
+        all_results.extend(process_session(db, workout, loaded_regions, session_config))
+
+    return len(pending), all_results
