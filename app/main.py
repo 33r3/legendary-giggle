@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db import get_db
 from app.ingest import persist_ingest_payload
-from app.schemas import IngestPayload
 
 app = FastAPI(title="exercise-rpg ingest")
 
@@ -22,8 +21,7 @@ def healthz() -> dict[str, str]:
 
 
 @app.post("/ingest/healthkit", dependencies=[Depends(verify_webhook_token)])
-async def ingest_healthkit(request: Request, db: Session = Depends(get_db)) -> dict[str, int]:
+async def ingest_healthkit(request: Request, db: Session = Depends(get_db)) -> dict[str, int | bool | str | None]:
     raw_body = (await request.body()).decode("utf-8")
-    payload = IngestPayload.model_validate_json(raw_body)
-    event = persist_ingest_payload(db, raw_body, payload)
-    return {"ingest_event_id": event.id}
+    event = persist_ingest_payload(db, raw_body)
+    return {"ingest_event_id": event.id, "parsed": event.parse_error is None, "error": event.parse_error}

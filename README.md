@@ -59,6 +59,17 @@ automations typically resend a rolling window on every run, and unlike
 passive Fragments, a session roll is never recomputed once it happens —
 a duplicate workout row would mean a duplicate, permanent payout.
 
+**A payload the current schema can't parse is still captured, never
+lost.** The endpoint always stores the raw body first; if parsing then
+fails, `raw_ingest_events.parse_error` records why and the response
+reports `"parsed": false`, but nothing is dropped. Once `app/schemas.py`
+is fixed to match, rerun parsing for every previously-failed delivery
+with:
+
+```
+python scripts/reparse_ingest_events.py
+```
+
 ## Content and tuning values
 
 Two different storage rules apply here, by design:

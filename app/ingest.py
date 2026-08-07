@@ -1,3 +1,4 @@
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -7,12 +8,25 @@ from app.schemas import IngestPayload
 STEP_METRIC_NAME = "step_count"
 
 
-def persist_ingest_payload(db: Session, raw_body: str, payload: IngestPayload) -> IngestEvent:
-    """Write one webhook delivery to raw storage, unmodified and in full.
+def store_raw_event(db: Session, raw_body: str) -> IngestEvent:
+    """Persists a webhook delivery byte-for-byte. Always succeeds — this
+    must never depend on whether the schema currently understands the
+    payload, per the raw-data-is-append-only invariant.
+    """
+    event = IngestEvent(raw_payload=raw_body)
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    return event
 
-    The ingest event and step samples are never deduplicated — append-only.
-    Any reward-relevant aggregation (e.g. cross-source step dedup) happens
-    later, in the derived layer, computed from this raw data.
+
+def apply_parsed_payload(db: Session, event: IngestEvent, payload: IngestPayload) -> None:
+    """Extracts typed rows from an already-parsed payload for an
+    already-stored event.
+
+    Step samples are never deduplicated — append-only. Any reward-relevant
+    aggregation (e.g. cross-source step dedup) happens later, in the
+    derived layer, computed from this raw data.
 
     Workouts are the one exception: export automations typically resend a
     rolling window on every run, and unlike passive Fragments, session
@@ -21,10 +35,6 @@ def persist_ingest_payload(db: Session, raw_body: str, payload: IngestPayload) -
     payout, not just a duplicate raw record. Dedup happens here, before
     that row can ever reach roll processing.
     """
-    event = IngestEvent(raw_payload=raw_body)
-    db.add(event)
-    db.flush()
-
     for metric in payload.data.metrics:
         if metric.name != STEP_METRIC_NAME:
             continue
@@ -75,6 +85,26 @@ def persist_ingest_payload(db: Session, raw_body: str, payload: IngestPayload) -
                 )
             )
 
+    event.parse_error = None
     db.commit()
+
+
+def persist_ingest_payload(db: Session, raw_body: str) -> IngestEvent:
+    """Stores the raw delivery, then attempts to parse and extract it. A
+    payload the current schema can't handle is still fully captured —
+    parse_error records why, and scripts/reparse_ingest_events.py can
+    retry it later once the schema is fixed, with nothing lost.
+    """
+    event = store_raw_event(db, raw_body)
+
+    try:
+        payload = IngestPayload.model_validate_json(raw_body)
+    except ValidationError as exc:
+        event.parse_error = str(exc)
+        db.commit()
+        db.refresh(event)
+        return event
+
+    apply_parsed_payload(db, event, payload)
     db.refresh(event)
     return event

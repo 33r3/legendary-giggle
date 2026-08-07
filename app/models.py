@@ -14,6 +14,7 @@ class IngestEvent(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     raw_payload: Mapped[str] = mapped_column(Text)
+    parse_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     step_samples: Mapped[list["StepSample"]] = relationship(back_populates="ingest_event")
     workouts: Mapped[list["Workout"]] = relationship(back_populates="ingest_event")

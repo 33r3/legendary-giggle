@@ -1,6 +1,8 @@
 import json
 
+from app.ingest import store_raw_event
 from app.models import IngestEvent, StepSample, Workout, WorkoutRoutePoint
+from scripts.reparse_ingest_events import reparse_failed_events
 from tests.conftest import WEBHOOK_TOKEN
 
 SAMPLE_PAYLOAD = {
@@ -121,3 +123,34 @@ def test_workout_without_id_is_accepted(client, db_session):
 
     workout = db_session.query(Workout).one()
     assert workout.external_id is None
+
+
+def test_unparseable_payload_is_captured_not_lost(client, db_session):
+    malformed = '{"data": {"metrics": "not-a-list"}}'
+    response = client.post("/ingest/healthkit", content=malformed, headers=auth_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["parsed"] is False
+    assert body["error"] is not None
+
+    event = db_session.get(IngestEvent, body["ingest_event_id"])
+    assert event.raw_payload == malformed
+    assert event.parse_error is not None
+    assert db_session.query(StepSample).filter_by(ingest_event_id=event.id).count() == 0
+    assert db_session.query(Workout).filter_by(ingest_event_id=event.id).count() == 0
+
+
+def test_reparse_recovers_a_previously_failed_event(db_session):
+    # Simulate a delivery that failed under an older schema, now fixed.
+    event = store_raw_event(db_session, json.dumps(SAMPLE_PAYLOAD))
+    event.parse_error = "simulated: workout.id was required"
+    db_session.commit()
+
+    fixed, still_failing = reparse_failed_events(db_session)
+
+    assert (fixed, still_failing) == (1, 0)
+    db_session.refresh(event)
+    assert event.parse_error is None
+    assert db_session.query(StepSample).filter_by(ingest_event_id=event.id).count() == 2
+    assert db_session.query(Workout).filter_by(ingest_event_id=event.id).count() == 1
