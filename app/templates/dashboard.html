@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Exercise RPG</title>
+  <link rel="stylesheet" href="/static/vendor/leaflet/leaflet.css">
   <style>
     :root {
       --bg: #f7f7f5;
@@ -86,11 +87,8 @@
     .flash.ok { background: color-mix(in srgb, var(--accent) 18%, var(--card-bg)); border: 1px solid var(--accent); }
     .flash.error { background: color-mix(in srgb, var(--danger) 18%, var(--card-bg)); border: 1px solid var(--danger); }
     .refresh-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
-    .region-map { width: 100%; height: auto; display: block; }
-    .map-region { stroke-width: 1.5; }
-    .map-region.unlocked { fill: color-mix(in srgb, var(--accent) 35%, transparent); stroke: var(--accent); }
-    .map-region.locked { fill: color-mix(in srgb, var(--locked) 18%, transparent); stroke: var(--locked); stroke-dasharray: 4 3; }
-    .map-label { font-size: 11px; fill: var(--text); text-anchor: middle; paint-order: stroke; stroke: var(--card-bg); stroke-width: 3px; }
+    #region-map { height: 360px; border-radius: 8px; margin-top: 0.6rem; background: var(--border); }
+    .locate-btn { font-size: 0.78rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -121,17 +119,13 @@
       {% endif %}
     </section>
 
-    {% if region_map.shapes %}
+    {% if region_geojson.features %}
       <section class="card">
-        <h2>Map</h2>
-        <svg class="region-map" viewBox="{{ region_map.view_box }}" xmlns="http://www.w3.org/2000/svg">
-          {% for shape in region_map.shapes %}
-            {% for ring in shape.rings %}
-              <polygon points="{{ ring }}" class="map-region {{ 'unlocked' if shape.unlocked else 'locked' }}"></polygon>
-            {% endfor %}
-            <text x="{{ shape.label_x }}" y="{{ shape.label_y }}" class="map-label">{{ shape.name }}</text>
-          {% endfor %}
-        </svg>
+        <div class="row">
+          <h2 style="margin-bottom: 0;">Map</h2>
+          <button type="button" id="locate-btn" class="locate-btn">Show my location</button>
+        </div>
+        <div id="region-map"></div>
       </section>
     {% endif %}
 
@@ -206,5 +200,50 @@
       </form>
     </section>
   </main>
+  {% if region_geojson.features %}
+    <script src="/static/vendor/leaflet/leaflet.js"></script>
+    <script>
+      (function () {
+        const regionData = {{ region_geojson | tojson }};
+        const styles = getComputedStyle(document.documentElement);
+        const accent = styles.getPropertyValue("--accent").trim();
+        const locked = styles.getPropertyValue("--locked").trim();
+
+        const map = L.map("region-map");
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        const layer = L.geoJSON(regionData, {
+          style: (feature) => ({
+            color: feature.properties.unlocked ? accent : locked,
+            weight: 2,
+            fillOpacity: feature.properties.unlocked ? 0.35 : 0.15,
+            dashArray: feature.properties.unlocked ? null : "5,4",
+          }),
+          onEachFeature: (feature, lyr) => lyr.bindTooltip(feature.properties.name),
+        }).addTo(map);
+        map.fitBounds(layer.getBounds(), { padding: [16, 16] });
+
+        let meMarker = null;
+        document.getElementById("locate-btn").addEventListener("click", () => {
+          map.locate({ setView: true, maxZoom: 16 });
+        });
+        map.on("locationfound", (e) => {
+          if (meMarker) meMarker.remove();
+          meMarker = L.circleMarker(e.latlng, {
+            radius: 8,
+            color: accent,
+            fillColor: accent,
+            fillOpacity: 0.9,
+          }).addTo(map).bindTooltip("You are here");
+        });
+        map.on("locationerror", (e) => {
+          alert("Could not get your location: " + e.message);
+        });
+      })();
+    </script>
+  {% endif %}
 </body>
 </html>
