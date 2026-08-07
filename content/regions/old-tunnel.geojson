@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "slug": "old-tunnel",
+        "name": "The Roost"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-98.8220, 30.0998],
+            [-98.8194, 30.0998],
+            [-98.8194, 30.1023],
+            [-98.8220, 30.1023],
+            [-98.8220, 30.0998]
+          ]
+        ]
+      }
+    }
+  ]
+}

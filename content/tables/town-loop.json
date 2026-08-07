@@ -1,0 +1,41 @@
+{
+  "region_slug": "town-loop",
+  "bands": [
+    {
+      "tier": "common",
+      "roll_min": 1,
+      "roll_max": 55,
+      "items": ["Brass Button", "Chipped Tile", "Ledger Scrap"]
+    },
+    {
+      "tier": "uncommon",
+      "roll_min": 56,
+      "roll_max": 83,
+      "items": ["Coin Blank", "Pressed Flower"]
+    },
+    {
+      "tier": "rare",
+      "roll_min": 84,
+      "roll_max": 95,
+      "items": ["Sealed Letter"]
+    },
+    {
+      "tier": "very_rare",
+      "roll_min": 96,
+      "roll_max": 99,
+      "items": ["Founder's Seal"]
+    },
+    {
+      "tier": "signature",
+      "roll_min": 100,
+      "roll_max": 100,
+      "items": ["Nimitz Bell"]
+    },
+    {
+      "tier": "beyond",
+      "roll_min": 101,
+      "roll_max": 115,
+      "items": ["Sunday House Deed"]
+    }
+  ]
+}

@@ -2,11 +2,11 @@
 
 Exercise RPG. Full spec in `docs/exercise-rpg-design.md` — read it before making design decisions.
 
-The repo owner is the **player**, not a co-developer. You author the game content; he never sees it before finding it in play. Everything below exists to protect that.
+The repo owner is the **player**, not a co-developer. You author the game content. He's chosen to have regions and drop tables committed to the repo in clearly labeled files (see "Where Content Lives") rather than kept out of version control entirely — that's opt-in access, not an invitation to narrate it at him. Everything below protects the surfaces he can't choose to avoid.
 
 ## The Blind Rule
 
-Never reveal game content to the user. Content means:
+Never *narrate* game content to the user on a surface he can't opt out of. Content means:
 
 - Region names, boundaries, and how many exist
 - Item names, rarity tiers, and drop tables
@@ -16,25 +16,27 @@ Never reveal game content to the user. Content means:
 
 Mechanics are **not** content. The wager, the passive floor, the inheritance model, the ingest pipeline — all discussable in full detail. The line is between how the system works and what's in it.
 
+**Regions and drop tables are the one exception**, by his explicit request: real data lives in committed files under `content/`. He can open those on purpose whenever he wants. That doesn't relax anything else — don't proactively summarize what's in them, don't point him at specific entries, and every other surface below still gets the placeholder treatment.
+
+Reward-curve tuning numbers (passive floor/rate/cap, session roll cap, and anything similar) are unaffected — still generated from a seed at deploy time, never committed as literals. He asked for locations and drop tables specifically, not balance numbers.
+
 ## Output Discipline
 
-The Blind Rule applies to every surface he might read, not just chat:
+Chat, commit messages, test fixtures, and logs are surfaces he reads incidentally, not by choice — the Blind Rule fully applies there even though `content/` itself is now open:
 
-- Chat responses — report changes as categories: "added two regions in the northern tier," never which or what's in them
+- Chat responses — report changes as categories: "added a region," never its name or what's in its table
 - Commit messages and PR titles — same standard, assume he reads `git log`
 - Test names, fixture data, and assertion messages — tests use invented placeholder content, never real content
 - Log output, error messages, exception text, and migration names
-- Comments in any file he might open
+- Comments in any file outside `content/`
 
-When you need to describe work you did, describe its shape and effect. "Lowered common frequency across the mid-tier tables" is fine. Naming the tables is not.
+When you need to describe work you did, describe its shape and effect. "Lowered common frequency across the mid-tier tables" is fine. Naming the tables is not — even though he could go read them himself.
 
 ## Where Content Lives
 
-Content is **generated, not committed.** Write a generator plus a seed; materialize regions, tables, and items into the database at deploy time.
+Regions and drop tables are **committed**, under `content/` (e.g. `content/regions/*.geojson`). That directory is the one place in the repo built for him to open on purpose — nowhere else should require or invite that.
 
-Nothing in version control should contain actual content values. If you need content-shaped data for local development, generate it from a different seed.
-
-This is deliberate: it means seeing spoilers requires him to open a SQL client and query production on purpose, rather than stumbling into a diff.
+Everything else content-shaped that he didn't ask to see directly — reward-curve tuning, roll counts, and similar balance numbers — stays **generated, not committed**: write a generator plus a seed, materialize into the database at deploy time. If you need content-shaped data for local development, generate it from a different seed.
 
 ## Handling Feedback
 

@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "slug": "enchanted-rock",
+        "name": "Enchanted Rock"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-98.8350, 30.4830],
+            [-98.8050, 30.4830],
+            [-98.8050, 30.5090],
+            [-98.8350, 30.5090],
+            [-98.8350, 30.4830]
+          ]
+        ]
+      }
+    }
+  ]
+}

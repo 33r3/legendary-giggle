@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "slug": "town-loop",
+        "name": "Town Loop"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-98.8830, 30.2700],
+            [-98.8610, 30.2700],
+            [-98.8610, 30.2810],
+            [-98.8830, 30.2810],
+            [-98.8830, 30.2700]
+          ]
+        ]
+      }
+    }
+  ]
+}
