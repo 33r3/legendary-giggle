@@ -1,0 +1,9 @@
+[Unit]
+Description=Run exercise-rpg wager payoff resolution daily
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

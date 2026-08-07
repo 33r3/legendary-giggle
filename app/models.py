@@ -224,3 +224,58 @@ class WorkoutRollResult(Base):
     tier: Mapped[str] = mapped_column(String(32))
     item_name: Mapped[str] = mapped_column(String(255))
     rolled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class WagerConfig(Base):
+    """A version of the wager's tier thresholds/bonuses. Same versioning
+    discipline as the other reward-curve configs: never mutated, retunes
+    insert a new row. The modest tier's bonus is always 0 — it's the
+    baseline the other tiers are a real choice against, not a tunable
+    number."""
+
+    __tablename__ = "wager_configs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    modest_session_threshold: Mapped[int] = mapped_column(Integer)
+    standard_session_threshold: Mapped[int] = mapped_column(Integer)
+    standard_bonus: Mapped[int] = mapped_column(Integer)
+    ambitious_session_threshold: Mapped[int] = mapped_column(Integer)
+    ambitious_bonus: Mapped[int] = mapped_column(Integer)
+    effective_from: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class WagerDeclaration(Base):
+    """A declared set point for one weekly period. Always targets the
+    period after whichever one is current at declaration time — see
+    app/rewards/wager.py — so it's never possible to declare (or change)
+    a wager for a period that's already started."""
+
+    __tablename__ = "wager_declarations"
+    __table_args__ = (UniqueConstraint("period_start", name="uq_wager_declarations_period"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    period_start: Mapped[date] = mapped_column(Date)
+    tier: Mapped[str] = mapped_column(String(16))
+    config_id: Mapped[int] = mapped_column(ForeignKey("wager_configs.id"))
+    declared_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class WagerPayoff(Base):
+    """The resolved outcome of one period's wager, computed once the
+    period has ended. Involves genuine randomness on a hit, so like
+    session rolls, this is never recomputed once resolved."""
+
+    __tablename__ = "wager_payoffs"
+    __table_args__ = (UniqueConstraint("period_start", name="uq_wager_payoffs_period"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    period_start: Mapped[date] = mapped_column(Date)
+    tier: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    qualifying_sessions: Mapped[int] = mapped_column(Integer)
+    hit_target: Mapped[bool] = mapped_column(Boolean)
+    region_id: Mapped[int | None] = mapped_column(ForeignKey("regions.id"), nullable=True)
+    roll_value: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tier_result: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    item_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    resolved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

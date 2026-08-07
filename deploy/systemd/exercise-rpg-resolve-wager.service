@@ -1,0 +1,16 @@
+[Unit]
+Description=Resolve completed exercise-rpg wager periods
+After=network.target
+
+[Service]
+Type=oneshot
+User=exercise-rpg
+Group=exercise-rpg
+WorkingDirectory=/opt/exercise-rpg
+EnvironmentFile=/etc/exercise-rpg/exercise-rpg.env
+ExecStart=/opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/scripts/resolve_wager_payoffs.py
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/exercise-rpg
