@@ -164,6 +164,16 @@ python scripts/resolve_wager_payoffs.py
 In production both of these run on a schedule (`deploy/systemd/`) —
 see `deploy/README.md`.
 
+## Checking your status
+
+There's no UI yet — this is the only way to see where things stand:
+Fragment balance and recent activity, region unlock state and costs,
+recent items found, and wager status.
+
+```
+python scripts/status.py
+```
+
 ## Deployment
 
 See `deploy/README.md` for the Ubuntu/nginx/systemd setup, secrets
