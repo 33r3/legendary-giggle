@@ -171,6 +171,11 @@ Full local setup order: `alembic upgrade head`, then the four scripts
 above (economy, regions, drop tables, unlock costs) in that order —
 drop tables and unlock costs both need regions loaded first.
 
+Adding a new region (boundary + drop table, wired through the loaders
+above) is a repeatable authoring task with its own agent definition —
+see `.claude/agents/region-author.md`. It expects a real-world location
+as input; it doesn't invent geography.
+
 Spend Fragments to unlock a non-free region (safe to rerun — a no-op if
 already unlocked, never a double charge) with:
 
