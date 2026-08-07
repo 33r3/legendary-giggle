@@ -35,11 +35,13 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
 - A web dashboard (`GET /`, HTTP Basic auth) — the same status
   information as `scripts/status.py`, plus buttons to unlock a region,
   declare next period's wager, and trigger a manual refresh. Same
-  FastAPI app, no separate service or JS build. Includes a map of every
-  region's real boundary, locked vs. unlocked — rendered as inline SVG
-  from the loaded polygons server-side, no basemap tiles and no
-  third-party mapping service (self-hosted only), so nothing about the
-  page ever calls out to the internet.
+  FastAPI app, no separate service or JS build. Includes an interactive
+  map (pan/zoom, plus a "show my location" button using the browser's
+  own geolocation) of every region's real boundary, locked vs. unlocked.
+  Leaflet is vendored into `app/static/` rather than pulled from a CDN,
+  but basemap tiles are streamed live from OpenStreetMap — a deliberate,
+  narrow exception to the self-hosted-only rule (see `CLAUDE.md`), made
+  because seeing real terrain is the point of this particular feature.
 
 ## Running locally
 

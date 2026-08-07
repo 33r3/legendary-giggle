@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -8,6 +11,7 @@ from app.web import router as web_router
 
 app = FastAPI(title="exercise-rpg ingest")
 app.include_router(web_router)
+app.mount("/static", StaticFiles(directory=str(Path(__file__).parent / "static")), name="static")
 
 
 def verify_webhook_token(authorization: str = Header(...)) -> None:

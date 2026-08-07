@@ -55,4 +55,4 @@ If a bug genuinely can't be diagnosed without him seeing content, say so explici
 - Ancestor regions in the hierarchy are strictly worse than their children — commons only, no signature results.
 - Passive tier yields common currency only. Rare results come from deliberate sessions.
 - Validate polygon containment at load time and fail loudly. A child outside its parent presents as a drop-rate bug.
-- No third-party data services. Self-hosted only.
+- No third-party data services. Self-hosted only. One narrow, explicit exception: the dashboard's interactive map pulls basemap tiles from OpenStreetMap live, by his explicit request — everything else about the app (including the tile-independent region logic) stays self-hosted, and no other feature gets this carve-out without him saying so again.

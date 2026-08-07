@@ -83,6 +83,25 @@ def test_dashboard_renders_with_correct_credentials(client, db_session):
     assert "Test Region" in response.text
 
 
+def test_dashboard_includes_map_when_regions_exist(client, db_session):
+    make_region(db_session)
+    response = client.get("/", auth=auth())
+    assert response.status_code == 200
+    assert 'id="region-map"' in response.text
+    assert "/static/vendor/leaflet/leaflet.js" in response.text
+
+
+def test_dashboard_omits_map_with_no_regions(client, db_session):
+    response = client.get("/", auth=auth())
+    assert response.status_code == 200
+    assert 'id="region-map"' not in response.text
+
+
+def test_static_leaflet_asset_is_served(client):
+    response = client.get("/static/vendor/leaflet/leaflet.js")
+    assert response.status_code == 200
+
+
 def test_declare_wager_action_redirects_with_message(client, db_session):
     make_wager_config(db_session)
     response = client.post("/wager/declare", data={"tier": "standard"}, auth=auth(), follow_redirects=False)
