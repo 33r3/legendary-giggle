@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "slug": "fort-martin-scott",
+        "name": "The Old Picket",
+        "always_unlocked": false
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-98.9160, 30.2610],
+            [-98.9110, 30.2610],
+            [-98.9110, 30.2650],
+            [-98.9160, 30.2650],
+            [-98.9160, 30.2610]
+          ]
+        ]
+      }
+    }
+  ]
+}

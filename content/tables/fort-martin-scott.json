@@ -1,0 +1,41 @@
+{
+  "region_slug": "fort-martin-scott",
+  "bands": [
+    {
+      "tier": "common",
+      "roll_min": 1,
+      "roll_max": 59,
+      "items": ["Rusted Horseshoe Nail", "Weathered Fence Post", "Limestone Chip"]
+    },
+    {
+      "tier": "uncommon",
+      "roll_min": 60,
+      "roll_max": 86,
+      "items": ["Tarnished Uniform Button", "Cracked Powder Flask"]
+    },
+    {
+      "tier": "rare",
+      "roll_min": 87,
+      "roll_max": 96,
+      "items": ["Cavalry Bridle Buckle"]
+    },
+    {
+      "tier": "very_rare",
+      "roll_min": 97,
+      "roll_max": 99,
+      "items": ["Sutler's Ledger Page"]
+    },
+    {
+      "tier": "signature",
+      "roll_min": 100,
+      "roll_max": 100,
+      "items": ["The Garrison Bugle"]
+    },
+    {
+      "tier": "beyond",
+      "roll_min": 101,
+      "roll_max": 115,
+      "items": ["Commandant's Spyglass"]
+    }
+  ]
+}
