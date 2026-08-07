@@ -1,0 +1,41 @@
+{
+  "region_slug": "concourse",
+  "bands": [
+    {
+      "tier": "common",
+      "roll_min": 1,
+      "roll_max": 56,
+      "items": ["Bent Paperclip", "Faded Parking Stub", "Foam Cup Lid"]
+    },
+    {
+      "tier": "uncommon",
+      "roll_min": 57,
+      "roll_max": 84,
+      "items": ["Unclaimed Umbrella", "Vending Machine Token"]
+    },
+    {
+      "tier": "rare",
+      "roll_min": 85,
+      "roll_max": 95,
+      "items": ["Laminated Visitor Badge"]
+    },
+    {
+      "tier": "very_rare",
+      "roll_min": 96,
+      "roll_max": 99,
+      "items": ["Sealed USB Drive"]
+    },
+    {
+      "tier": "signature",
+      "roll_min": 100,
+      "roll_max": 100,
+      "items": ["The Founder's Nameplate"]
+    },
+    {
+      "tier": "beyond",
+      "roll_min": 101,
+      "roll_max": 115,
+      "items": ["Executive Parking Sign"]
+    }
+  ]
+}
