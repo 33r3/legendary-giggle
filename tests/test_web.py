@@ -9,9 +9,20 @@ def auth():
     return (WEB_UI_USERNAME, WEB_UI_PASSWORD)
 
 
+# A synthetic square, not real geography — placeholder boundary for tests
+# that don't care about actual shape.
+PLACEHOLDER_POLYGON = json.dumps(
+    {"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}
+)
+
+
 def make_region(db_session, slug="home", always_unlocked=True, cost=None) -> Region:
     region = Region(
-        slug=slug, name="Test Region", polygon_geojson="{}", always_unlocked=always_unlocked, unlock_cost_fragments=cost
+        slug=slug,
+        name="Test Region",
+        polygon_geojson=PLACEHOLDER_POLYGON,
+        always_unlocked=always_unlocked,
+        unlock_cost_fragments=cost,
     )
     db_session.add(region)
     db_session.commit()

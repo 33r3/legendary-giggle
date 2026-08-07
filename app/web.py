@@ -29,6 +29,7 @@ from app.status import (
     latest_wager_payoff,
     recent_finds,
     recent_fragment_activity,
+    region_map,
     region_statuses,
 )
 
@@ -75,6 +76,7 @@ def dashboard(
             "balance": fragment_balance(db),
             "recent_activity": recent_fragment_activity(db),
             "regions": regions,
+            "region_map": region_map(regions),
             "finds": finds,
             "wager_declaration": latest_wager_declaration(db),
             "wager_payoff": latest_wager_payoff(db),

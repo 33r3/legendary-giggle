@@ -8,6 +8,7 @@ from datetime import date, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.geo.mapview import RegionMap, build_region_map
 from app.models import FragmentLedgerEntry, PassiveFragmentAward, Region, WagerDeclaration, WagerPayoff, WorkoutRollResult
 from app.rewards.fragments import current_fragment_balance
 from app.rewards.unlocks import is_region_unlocked
@@ -62,6 +63,12 @@ def region_statuses(db: Session) -> list[RegionStatus]:
         RegionStatus(region=region, unlocked=is_region_unlocked(db, region))
         for region in db.query(Region).order_by(Region.name).all()
     ]
+
+
+def region_map(regions: list[RegionStatus]) -> RegionMap:
+    """Every region's boundary projected into one shared map, alongside
+    its lock status — for the dashboard's map view."""
+    return build_region_map([(status.region, status.unlocked) for status in regions])
 
 
 def recent_finds(db: Session, limit: int = 10) -> list[WorkoutRollResult]:

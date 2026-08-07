@@ -86,6 +86,11 @@
     .flash.ok { background: color-mix(in srgb, var(--accent) 18%, var(--card-bg)); border: 1px solid var(--accent); }
     .flash.error { background: color-mix(in srgb, var(--danger) 18%, var(--card-bg)); border: 1px solid var(--danger); }
     .refresh-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+    .region-map { width: 100%; height: auto; display: block; }
+    .map-region { stroke-width: 1.5; }
+    .map-region.unlocked { fill: color-mix(in srgb, var(--accent) 35%, transparent); stroke: var(--accent); }
+    .map-region.locked { fill: color-mix(in srgb, var(--locked) 18%, transparent); stroke: var(--locked); stroke-dasharray: 4 3; }
+    .map-label { font-size: 11px; fill: var(--text); text-anchor: middle; paint-order: stroke; stroke: var(--card-bg); stroke-width: 3px; }
   </style>
 </head>
 <body>
@@ -115,6 +120,20 @@
         </ul>
       {% endif %}
     </section>
+
+    {% if region_map.shapes %}
+      <section class="card">
+        <h2>Map</h2>
+        <svg class="region-map" viewBox="{{ region_map.view_box }}" xmlns="http://www.w3.org/2000/svg">
+          {% for shape in region_map.shapes %}
+            {% for ring in shape.rings %}
+              <polygon points="{{ ring }}" class="map-region {{ 'unlocked' if shape.unlocked else 'locked' }}"></polygon>
+            {% endfor %}
+            <text x="{{ shape.label_x }}" y="{{ shape.label_y }}" class="map-label">{{ shape.name }}</text>
+          {% endfor %}
+        </svg>
+      </section>
+    {% endif %}
 
     <section class="card">
       <h2>Regions</h2>

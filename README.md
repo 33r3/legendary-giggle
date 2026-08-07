@@ -35,7 +35,11 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
 - A web dashboard (`GET /`, HTTP Basic auth) — the same status
   information as `scripts/status.py`, plus buttons to unlock a region,
   declare next period's wager, and trigger a manual refresh. Same
-  FastAPI app, no separate service or JS build.
+  FastAPI app, no separate service or JS build. Includes a map of every
+  region's real boundary, locked vs. unlocked — rendered as inline SVG
+  from the loaded polygons server-side, no basemap tiles and no
+  third-party mapping service (self-hosted only), so nothing about the
+  page ever calls out to the internet.
 
 ## Running locally
 
@@ -170,6 +174,11 @@ python scripts/materialize_unlock_costs.py
 Full local setup order: `alembic upgrade head`, then the four scripts
 above (economy, regions, drop tables, unlock costs) in that order —
 drop tables and unlock costs both need regions loaded first.
+
+Adding a new region (boundary + drop table, wired through the loaders
+above) is a repeatable authoring task with its own agent definition —
+see `.claude/agents/region-author.md`. It expects a real-world location
+as input; it doesn't invent geography.
 
 Spend Fragments to unlock a non-free region (safe to rerun — a no-op if
 already unlocked, never a double charge) with:
