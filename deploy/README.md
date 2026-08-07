@@ -103,16 +103,32 @@ again except when an actual retune is intended. `load_regions.py`,
 `load_drop_tables.py`, and `materialize_unlock_costs.py` are all safe to
 rerun any time (upsert/idempotent).
 
-## 5. systemd service
+## 5. systemd service and timers
+
+The web service handles ingest; two timers handle everything that isn't
+triggered by an incoming request — turning ingested workouts into roll
+results, and resolving each week's wager once it's over.
 
 ```
 sudo cp deploy/systemd/exercise-rpg.service /etc/systemd/system/
+sudo cp deploy/systemd/exercise-rpg-process-sessions.service /etc/systemd/system/
+sudo cp deploy/systemd/exercise-rpg-process-sessions.timer /etc/systemd/system/
+sudo cp deploy/systemd/exercise-rpg-resolve-wager.service /etc/systemd/system/
+sudo cp deploy/systemd/exercise-rpg-resolve-wager.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now exercise-rpg
+sudo systemctl enable --now exercise-rpg-process-sessions.timer
+sudo systemctl enable --now exercise-rpg-resolve-wager.timer
 sudo systemctl status exercise-rpg
 ```
 
-Confirm it's alive locally before touching nginx:
+Note only the `.timer` units get `enable --now`, not the `.service` units
+they trigger — the service files are `Type=oneshot` and have no
+`[Install]` section of their own; the timer is what's meant to be
+enabled, and it runs the service on schedule (every 10 minutes for
+session processing, daily for wager resolution).
+
+Confirm the web service is alive locally before touching nginx:
 
 ```
 curl http://127.0.0.1:8000/healthz
@@ -186,15 +202,29 @@ This pulls, migrates, and restarts. It does **not** rerun the
 `load_drop_tables.py` by hand (safe to rerun) whenever content actually
 changes.
 
-## Processing sessions
+## The wager
 
-`scripts/process_sessions.py` isn't wired to run automatically yet — for
-now, run it by hand (or add it to `deploy.sh` / a cron job) after new
-workouts come in:
+Declaring a set point always applies to the period *after* whichever one
+is current — there's no way to declare (or change) a wager for a period
+that's already started, which is what makes it a real commitment rather
+than a look-ahead:
+
+```
+sudo -u exercise-rpg /opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/scripts/declare_wager.py standard
+```
+
+(`modest`, `standard`, or `ambitious`.) Payoffs resolve automatically via
+the timer set up in step 5 once a period ends — no action needed there.
+
+## Running things by hand
+
+Both timers from step 5 can also be triggered manually, which is useful
+right after a walk if you don't want to wait for the next scheduled run:
 
 ```
 sudo -u exercise-rpg /opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/scripts/process_sessions.py
+sudo -u exercise-rpg /opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/scripts/resolve_wager_payoffs.py
 ```
 
-A timer that runs it every few minutes would be the natural next step
-once you're ready to stop doing that by hand.
+Both are safe to run any time — already-processed workouts and
+already-resolved periods are left untouched.

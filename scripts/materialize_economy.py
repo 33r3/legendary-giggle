@@ -9,8 +9,12 @@ from datetime import datetime, timezone
 
 from app.config import get_settings
 from app.db import SessionLocal
-from app.generation.economy import generate_passive_tier_params, generate_session_tier_params
-from app.models import PassiveTierConfig, SessionTierConfig
+from app.generation.economy import (
+    generate_passive_tier_params,
+    generate_session_tier_params,
+    generate_wager_config_params,
+)
+from app.models import PassiveTierConfig, SessionTierConfig, WagerConfig
 
 
 def materialize_passive_tier_config() -> PassiveTierConfig:
@@ -52,6 +56,29 @@ def materialize_session_tier_config() -> SessionTierConfig:
         db.close()
 
 
+def materialize_wager_config() -> WagerConfig:
+    settings = get_settings()
+    params = generate_wager_config_params(settings.game_seed)
+
+    db = SessionLocal()
+    try:
+        config = WagerConfig(
+            modest_session_threshold=params["modest_session_threshold"],
+            standard_session_threshold=params["standard_session_threshold"],
+            standard_bonus=params["standard_bonus"],
+            ambitious_session_threshold=params["ambitious_session_threshold"],
+            ambitious_bonus=params["ambitious_bonus"],
+            effective_from=datetime.now(timezone.utc),
+        )
+        db.add(config)
+        db.commit()
+        db.refresh(config)
+        return config
+    finally:
+        db.close()
+
+
 if __name__ == "__main__":
     materialize_passive_tier_config()
     materialize_session_tier_config()
+    materialize_wager_config()

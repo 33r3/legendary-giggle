@@ -23,9 +23,13 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
 - Phase 5 (region unlocks, the sink): Fragments spend to unlock a region
   permanently. Home is free (`always_unlocked`); other regions have a
   generated-not-committed cost. Fragments come from passive accrual and
-  from converting common session results back to Fragments. The weekly
-  wager/payoff-roll mechanic isn't wired up yet — sessions currently roll
-  a plain d100 with no bonus.
+  from converting common session results back to Fragments.
+- The wager: a declared weekly set point (modest/standard/ambitious,
+  generated thresholds and bonuses) that earns a bonus Payoff roll if met
+  — rolled against whichever unlocked region got the most attributed
+  minutes that period. A declaration always applies to the period after
+  whichever one is current, so it can never target an already-started
+  period. Missing the target forfeits the bonus with no other penalty.
 
 ## Running locally
 
@@ -133,7 +137,7 @@ already unlocked, never a double charge) with:
 python scripts/unlock_region.py <slug>
 ```
 
-## Processing sessions
+## Processing sessions and the wager
 
 After ingest, resolve any workouts that don't have roll results yet
 (safe to rerun — already-processed workouts are left untouched, since
@@ -142,6 +146,23 @@ rolling involves genuine randomness that's never recomputed) with:
 ```
 python scripts/process_sessions.py
 ```
+
+Declare a wager tier (`modest`, `standard`, or `ambitious`) — always
+applies to the period after the current one:
+
+```
+python scripts/declare_wager.py standard
+```
+
+Resolve every completed period that doesn't have a payoff yet (safe to
+rerun; in-progress periods are left alone):
+
+```
+python scripts/resolve_wager_payoffs.py
+```
+
+In production both of these run on a schedule (`deploy/systemd/`) —
+see `deploy/README.md`.
 
 ## Deployment
 

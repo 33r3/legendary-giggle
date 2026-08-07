@@ -48,3 +48,27 @@ def generate_region_unlock_cost(seed: str, region_slug: str) -> int:
     """Per-region, not just per-seed, so each region gets its own cost
     rather than all non-free regions sharing one price."""
     return _pick(seed, f"region_unlock_cost:{region_slug}", _REGION_UNLOCK_COST_CANDIDATES)
+
+
+# Non-overlapping candidate ranges guarantee modest < standard < ambitious
+# thresholds and standard < ambitious bonuses by construction, without
+# needing to generate-then-validate an ordering.
+_MODEST_SESSION_THRESHOLD_CANDIDATES = [1, 2]
+_STANDARD_SESSION_THRESHOLD_CANDIDATES = [3, 4]
+_STANDARD_BONUS_CANDIDATES = [3, 5, 8]
+_AMBITIOUS_SESSION_THRESHOLD_CANDIDATES = [5, 6, 7]
+_AMBITIOUS_BONUS_CANDIDATES = [12, 15, 20, 25]
+
+
+def generate_wager_config_params(seed: str) -> dict[str, int]:
+    return {
+        "modest_session_threshold": _pick(seed, "modest_session_threshold", _MODEST_SESSION_THRESHOLD_CANDIDATES),
+        "standard_session_threshold": _pick(
+            seed, "standard_session_threshold", _STANDARD_SESSION_THRESHOLD_CANDIDATES
+        ),
+        "standard_bonus": _pick(seed, "standard_bonus", _STANDARD_BONUS_CANDIDATES),
+        "ambitious_session_threshold": _pick(
+            seed, "ambitious_session_threshold", _AMBITIOUS_SESSION_THRESHOLD_CANDIDATES
+        ),
+        "ambitious_bonus": _pick(seed, "ambitious_bonus", _AMBITIOUS_BONUS_CANDIDATES),
+    }
