@@ -35,7 +35,7 @@ def feature(slug, geometry, always_unlocked=False):
     }
 
 
-def make_workout_with_route(db_session, minutes_in_region=30) -> Workout:
+def make_workout_with_route(db_session, minutes_in_region=30, distance_meters=None) -> Workout:
     event = IngestEvent(raw_payload="{}")
     db_session.add(event)
     db_session.flush()
@@ -48,6 +48,7 @@ def make_workout_with_route(db_session, minutes_in_region=30) -> Workout:
         start_time=datetime(2026, 8, 1, 9, tzinfo=timezone.utc),
         end_time=datetime(2026, 8, 1, 9, tzinfo=timezone.utc) + timedelta(minutes=minutes_in_region),
         duration_seconds=minutes_in_region * 60,
+        distance_meters=distance_meters,
     )
     db_session.add(workout)
     db_session.flush()
@@ -101,6 +102,22 @@ def test_unlocked_region_produces_results(db_session):
     assert len(results) == 2  # 30 minutes / 15-minute interval
     assert all(r.item_name == "Widget A" for r in results)
     assert all(r.region_id == region.id for r in results)
+
+
+def test_idle_workout_in_unlocked_region_produces_no_results(db_session):
+    """Long enough, region unlocked, but distance implies no real
+    movement — the region/duration mechanics alone shouldn't be
+    sufficient to earn a roll."""
+    load_regions(db_session, geojson_collection([feature("area-a", SQUARE_A, always_unlocked=True)]))
+    load_drop_table(db_session, json.dumps(PLACEHOLDER_TABLE))
+
+    loaded_regions = load_region_polygons(db_session.query(Region).all())
+    session_config = SessionTierConfig(**SESSION_CONFIG_KWARGS)
+
+    workout = make_workout_with_route(db_session, minutes_in_region=45, distance_meters=30)
+    results = process_session(db_session, workout, loaded_regions, session_config, rng=random.Random(1))
+
+    assert results == []
 
 
 def test_processing_is_idempotent(db_session):

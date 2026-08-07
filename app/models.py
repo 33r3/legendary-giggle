@@ -50,6 +50,7 @@ class Workout(Base):
     start_time: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     end_time: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     duration_seconds: Mapped[float] = mapped_column(Float)
+    distance_meters: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     ingest_event: Mapped[IngestEvent] = relationship(back_populates="workouts")
     route_points: Mapped[list["WorkoutRoutePoint"]] = relationship(

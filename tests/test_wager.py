@@ -54,7 +54,7 @@ def feature(slug, geometry, always_unlocked=False):
     }
 
 
-def make_workout(db_session, start_time, duration_minutes, with_route=True) -> Workout:
+def make_workout(db_session, start_time, duration_minutes, with_route=True, distance_meters=None) -> Workout:
     event = IngestEvent(raw_payload="{}")
     db_session.add(event)
     db_session.flush()
@@ -67,6 +67,7 @@ def make_workout(db_session, start_time, duration_minutes, with_route=True) -> W
         start_time=start_time,
         end_time=end_time,
         duration_seconds=duration_minutes * 60,
+        distance_meters=distance_meters,
     )
     db_session.add(workout)
     db_session.flush()
@@ -128,6 +129,20 @@ def test_qualifying_session_count_filters_by_duration_and_period(db_session):
     make_workout(db_session, datetime(2026, 8, 11, 9, tzinfo=timezone.utc), duration_minutes=20)  # next period
 
     assert qualifying_session_count(db_session, period_start) == 1
+
+
+def test_qualifying_session_count_excludes_idle_workouts(db_session):
+    """Long enough duration, but distance implies the person never
+    actually moved — shouldn't count toward the wager."""
+    period_start = date(2026, 8, 3)
+    make_workout(
+        db_session,
+        datetime(2026, 8, 4, 9, tzinfo=timezone.utc),
+        duration_minutes=45,
+        distance_meters=30,  # ~30m of GPS jitter over 45 minutes, not a walk
+    )
+
+    assert qualifying_session_count(db_session, period_start) == 0
 
 
 def test_resolve_payoff_with_no_declaration_does_not_hit(db_session):

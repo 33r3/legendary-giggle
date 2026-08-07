@@ -63,6 +63,15 @@ automations typically resend a rolling window on every run, and unlike
 passive Fragments, a session roll is never recomputed once it happens —
 a duplicate workout row would mean a duplicate, permanent payout.
 
+**A workout only earns rolls (and only counts toward the wager) if it
+implies actual movement, not just duration.** Starting a workout and not
+moving would otherwise earn full credit for elapsed time alone. The gate
+uses the workout's own reported `distance` — not summed point-to-point
+GPS deltas, which accumulate meaningful fake distance from accuracy
+noise alone at ~1Hz sampling — against a low minimum-pace bar (see
+`app/rewards/movement.py`). A workout with no distance data passes by
+default; this is a movement check, not a data-completeness requirement.
+
 **A payload the current schema can't parse is still captured, never
 lost.** The endpoint always stores the raw body first; if parsing then
 fails, `raw_ingest_events.parse_error` records why and the response
