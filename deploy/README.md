@@ -111,18 +111,22 @@ rerun any time (upsert/idempotent).
 
 ## 5. systemd service and timers
 
-The web service handles ingest; two timers handle everything that isn't
-triggered by an incoming request — turning ingested workouts into roll
-results, and resolving each week's wager once it's over.
+The web service handles ingest; three timers handle everything that
+isn't triggered by an incoming request — recomputing passive Fragments
+from raw steps, turning ingested workouts into roll results, and
+resolving each week's wager once it's over.
 
 ```
 sudo cp deploy/systemd/exercise-rpg.service /etc/systemd/system/
+sudo cp deploy/systemd/exercise-rpg-recompute-passive.service /etc/systemd/system/
+sudo cp deploy/systemd/exercise-rpg-recompute-passive.timer /etc/systemd/system/
 sudo cp deploy/systemd/exercise-rpg-process-sessions.service /etc/systemd/system/
 sudo cp deploy/systemd/exercise-rpg-process-sessions.timer /etc/systemd/system/
 sudo cp deploy/systemd/exercise-rpg-resolve-wager.service /etc/systemd/system/
 sudo cp deploy/systemd/exercise-rpg-resolve-wager.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now exercise-rpg
+sudo systemctl enable --now exercise-rpg-recompute-passive.timer
 sudo systemctl enable --now exercise-rpg-process-sessions.timer
 sudo systemctl enable --now exercise-rpg-resolve-wager.timer
 sudo systemctl status exercise-rpg
@@ -131,8 +135,9 @@ sudo systemctl status exercise-rpg
 Note only the `.timer` units get `enable --now`, not the `.service` units
 they trigger — the service files are `Type=oneshot` and have no
 `[Install]` section of their own; the timer is what's meant to be
-enabled, and it runs the service on schedule (every 10 minutes for
-session processing, daily for wager resolution).
+enabled, and it runs the service on schedule (every 15 minutes for
+passive recompute, every 10 minutes for session processing, daily for
+wager resolution).
 
 Confirm the web service is alive locally before touching nginx:
 
@@ -242,14 +247,17 @@ the timer set up in step 5 once a period ends — no action needed there.
 
 ## Running things by hand
 
-Both timers from step 5 can also be triggered manually, which is useful
-right after a walk if you don't want to wait for the next scheduled run:
+All three timers from step 5 can also be triggered manually, which is
+useful right after a walk if you don't want to wait for the next
+scheduled run:
 
 ```
+sudo -u exercise-rpg /opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/scripts/recompute_passive.py
 sudo -u exercise-rpg /opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/scripts/process_sessions.py
 sudo -u exercise-rpg /opt/exercise-rpg/.venv/bin/python /opt/exercise-rpg/scripts/resolve_wager_payoffs.py
 ```
 
-Both are safe to run any time — already-processed workouts and
-already-resolved periods are left untouched. The dashboard's "Refresh
-now" button (step 9) does the same thing without needing SSH.
+All are safe to run any time — already-computed days, already-processed
+workouts, and already-resolved periods are left untouched. The
+dashboard's "Refresh now" button (step 9) does all three without
+needing SSH.

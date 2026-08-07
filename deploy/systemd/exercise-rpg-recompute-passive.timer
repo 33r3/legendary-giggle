@@ -1,0 +1,10 @@
+[Unit]
+Description=Run exercise-rpg passive-tier recompute periodically
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

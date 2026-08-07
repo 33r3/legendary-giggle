@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.db import get_db
 from app.models import Region
+from app.rewards.passive import default_recompute_range, recompute_range
 from app.rewards.session_execution import process_pending_sessions
 from app.rewards.unlocks import InsufficientFragments, unlock_region
 from app.rewards.wager import declare_wager, resolve_all_completed_payoffs
@@ -117,10 +118,12 @@ def unlock_region_action(slug: str, db: Session = Depends(get_db), _=Depends(req
 
 @router.post("/refresh")
 def refresh_action(db: Session = Depends(get_db), _=Depends(require_login)):
+    start, end = default_recompute_range()
+    recompute_range(db, start, end)
     processed_count, results = process_pending_sessions(db)
     payoffs = resolve_all_completed_payoffs(db)
     hits = sum(1 for p in payoffs if p.hit_target)
     return _redirect_home(
-        f"Processed {processed_count} workout(s), {len(results)} roll(s). "
-        f"Resolved {len(payoffs)} wager period(s), {hits} hit target."
+        f"Recomputed passive Fragments. Processed {processed_count} workout(s), "
+        f"{len(results)} roll(s). Resolved {len(payoffs)} wager period(s), {hits} hit target."
     )

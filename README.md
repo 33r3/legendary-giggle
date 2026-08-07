@@ -120,12 +120,18 @@ Materialize the current reward curves after migrating:
 python scripts/materialize_economy.py
 ```
 
-Recompute Fragment awards for a date range (safe to rerun any time; each
-day is fully recomputed from raw, never accumulated) with:
+Recompute passive Fragment awards (safe to rerun any time; each day is
+fully recomputed from raw, never accumulated) with:
 
 ```
-python scripts/recompute_passive.py 2026-08-01 2026-08-07
+python scripts/recompute_passive.py                    # yesterday and today
+python scripts/recompute_passive.py 2026-08-01 2026-08-07   # explicit range, e.g. backfill
 ```
+
+In production this runs on a timer (`deploy/systemd/`) — see
+`deploy/README.md`. There's no ingest-time trigger for this the way
+there is for session rolls; passive accrual only becomes real Fragments
+once something recomputes it.
 
 Load all region boundaries from `content/regions/*.geojson` (safe to rerun
 — upserts by slug) with:

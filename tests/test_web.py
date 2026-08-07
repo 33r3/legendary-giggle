@@ -28,6 +28,18 @@ def make_session_config(db_session) -> None:
     db_session.commit()
 
 
+def make_passive_config(db_session) -> None:
+    db_session.add(
+        PassiveTierConfig(
+            floor_steps=1000,
+            steps_per_fragment=100,
+            daily_cap_fragments=5,
+            effective_from=datetime(2020, 1, 1, tzinfo=timezone.utc),
+        )
+    )
+    db_session.commit()
+
+
 def make_wager_config(db_session) -> None:
     db_session.add(
         WagerConfig(
@@ -93,6 +105,7 @@ def test_refresh_action_requires_auth(client):
 
 def test_refresh_action_runs_and_redirects(client, db_session):
     make_session_config(db_session)
+    make_passive_config(db_session)
     response = client.post("/refresh", auth=auth(), follow_redirects=False)
     assert response.status_code == 303
     assert "message=" in response.headers["location"]
@@ -100,6 +113,7 @@ def test_refresh_action_runs_and_redirects(client, db_session):
 
 def test_flash_message_renders_on_dashboard(client, db_session):
     make_session_config(db_session)
+    make_passive_config(db_session)
     response = client.post("/refresh", auth=auth())
     assert response.status_code == 200
     assert "Processed" in response.text
