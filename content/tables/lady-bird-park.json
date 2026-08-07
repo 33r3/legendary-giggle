@@ -1,0 +1,41 @@
+{
+  "region_slug": "lady-bird-park",
+  "bands": [
+    {
+      "tier": "common",
+      "roll_min": 1,
+      "roll_max": 58,
+      "items": ["Sun-Bleached Golf Tee", "Bent Fence Staple", "Faded Ticket Stub"]
+    },
+    {
+      "tier": "uncommon",
+      "roll_min": 59,
+      "roll_max": 85,
+      "items": ["Windsock Swatch", "Cracked Scorecard Pencil"]
+    },
+    {
+      "tier": "rare",
+      "roll_min": 86,
+      "roll_max": 96,
+      "items": ["Runway Marker Lens"]
+    },
+    {
+      "tier": "very_rare",
+      "roll_min": 97,
+      "roll_max": 99,
+      "items": ["Blue Ribbon Rosette"]
+    },
+    {
+      "tier": "signature",
+      "roll_min": 100,
+      "roll_max": 100,
+      "items": ["The Fairgrounds Bell"]
+    },
+    {
+      "tier": "beyond",
+      "roll_min": 101,
+      "roll_max": 115,
+      "items": ["Propeller Blade Fragment"]
+    }
+  ]
+}
