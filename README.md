@@ -126,6 +126,13 @@ Full local setup order: `alembic upgrade head`, then the four scripts
 above (economy, regions, drop tables, unlock costs) in that order —
 drop tables and unlock costs both need regions loaded first.
 
+Spend Fragments to unlock a non-free region (safe to rerun — a no-op if
+already unlocked, never a double charge) with:
+
+```
+python scripts/unlock_region.py <slug>
+```
+
 ## Processing sessions
 
 After ingest, resolve any workouts that don't have roll results yet

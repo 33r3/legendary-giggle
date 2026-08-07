@@ -5,7 +5,8 @@
       "type": "Feature",
       "properties": {
         "slug": "concourse",
-        "name": "The Concourse"
+        "name": "The Concourse",
+        "always_unlocked": true
       },
       "geometry": {
         "type": "Polygon",
