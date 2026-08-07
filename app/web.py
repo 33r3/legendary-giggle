@@ -3,6 +3,7 @@ and trigger a manual refresh. Server-rendered, no JS build — this is a
 personal single-user tool, not a product.
 """
 
+import itertools
 import secrets
 from pathlib import Path
 from urllib.parse import quote
@@ -21,6 +22,7 @@ from app.rewards.session_execution import process_pending_sessions
 from app.rewards.unlocks import InsufficientFragments, unlock_region
 from app.rewards.wager import declare_wager, resolve_all_completed_payoffs
 from app.status import (
+    collection_items,
     fragment_balance,
     latest_wager_declaration,
     latest_wager_payoff,
@@ -78,6 +80,17 @@ def dashboard(
             "message": message,
             "error": error,
         },
+    )
+
+
+@router.get("/collection")
+def collection(request: Request, db: Session = Depends(get_db), _=Depends(require_login)):
+    items = collection_items(db)
+    grouped = [(tier, list(group)) for tier, group in itertools.groupby(items, key=lambda i: i.tier)]
+    return templates.TemplateResponse(
+        request,
+        "collection.html",
+        {"grouped": grouped},
     )
 
 

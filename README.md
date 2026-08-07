@@ -206,6 +206,12 @@ web dashboard also has buttons to unlock a region, declare next
 period's wager, and trigger the same refresh as
 `process_sessions.py` + `resolve_wager_payoffs.py` combined.
 
+`/collection` is the permanent view: every uncommon-or-better find
+(session rolls and wager payoffs both), grouped rarest-first. Commons
+convert straight to Fragments and never appear there — "recent finds"
+on the dashboard is the short, mixed-tier activity feed; `/collection`
+is the trophy case.
+
 ## Deployment
 
 See `deploy/README.md` for the Ubuntu/nginx/systemd setup, secrets
