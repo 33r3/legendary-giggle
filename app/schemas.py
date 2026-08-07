@@ -28,10 +28,13 @@ class Metric(BaseModel):
 
 
 class RoutePoint(BaseModel):
-    lat: float
-    lon: float
+    latitude: float
+    longitude: float
     altitude: float | None = None
     timestamp: datetime
+    # course, speed, and accuracy fields also arrive here but aren't
+    # needed for region attribution — Pydantic drops unrecognized fields
+    # by default, so they stay in raw_payload but don't need a home here.
 
     @field_validator("timestamp", mode="before")
     @classmethod
