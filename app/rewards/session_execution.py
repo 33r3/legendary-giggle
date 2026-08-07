@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.geo.attribution import LoadedRegion, attribute_route_minutes, load_region_polygons
 from app.loot.tables import load_table_for_region, resolve_roll
 from app.models import Region, SessionTierConfig, Workout, WorkoutRollResult
+from app.rewards.fragments import record_common_conversion
 from app.rewards.movement import passes_movement_gate
 from app.rewards.session import current_session_tier_config, session_roll_counts
 from app.rewards.unlocks import is_region_unlocked
@@ -63,6 +64,9 @@ def process_session(
             )
             db.add(result)
             results.append(result)
+
+            if outcome.tier == "common":
+                record_common_conversion(db, outcome.item_name, region_id)
 
     db.commit()
     for result in results:

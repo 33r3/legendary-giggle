@@ -7,6 +7,7 @@ from app.generation.economy import generate_wager_config_params
 from app.geo.regions import load_regions
 from app.loot.tables import load_drop_table
 from app.models import IngestEvent, Region, WagerConfig, WagerDeclaration, Workout, WorkoutRoutePoint
+from app.rewards.fragments import current_fragment_balance
 from app.rewards.unlocks import unlock_region
 from app.rewards.wager import (
     declare_wager,
@@ -184,6 +185,8 @@ def test_resolve_payoff_hit_rolls_against_most_active_unlocked_region(db_session
     assert payoff.item_name == "Widget A"
     assert payoff.roll_value is not None
     assert 1 <= payoff.roll_value <= 100  # modest tier's bonus is always 0
+    assert payoff.tier_result == "common"
+    assert current_fragment_balance(db_session) == 1  # common payoff auto-converted
 
 
 def test_resolve_payoff_is_idempotent(db_session):

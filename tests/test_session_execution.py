@@ -6,6 +6,7 @@ from app.geo.attribution import load_region_polygons
 from app.geo.regions import load_regions
 from app.loot.tables import load_drop_table
 from app.models import IngestEvent, Region, SessionTierConfig, Workout, WorkoutRollResult, WorkoutRoutePoint
+from app.rewards.fragments import current_fragment_balance
 from app.rewards.session_execution import process_session
 from app.rewards.unlocks import unlock_region
 
@@ -14,6 +15,11 @@ SQUARE_A = {"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], 
 PLACEHOLDER_TABLE = {
     "region_slug": "area-a",
     "bands": [{"tier": "common", "roll_min": 1, "roll_max": 100, "items": ["Widget A"]}],
+}
+
+PLACEHOLDER_TABLE_RARE_ONLY = {
+    "region_slug": "area-a",
+    "bands": [{"tier": "rare", "roll_min": 1, "roll_max": 100, "items": ["Widget B"]}],
 }
 
 SESSION_CONFIG_KWARGS = dict(
@@ -102,6 +108,42 @@ def test_unlocked_region_produces_results(db_session):
     assert len(results) == 2  # 30 minutes / 15-minute interval
     assert all(r.item_name == "Widget A" for r in results)
     assert all(r.region_id == region.id for r in results)
+
+
+def test_common_rolls_auto_convert_to_fragments(db_session):
+    load_regions(db_session, geojson_collection([feature("area-a", SQUARE_A)]))
+    load_drop_table(db_session, json.dumps(PLACEHOLDER_TABLE))
+    region = db_session.query(Region).one()
+    region.unlock_cost_fragments = 0
+    db_session.commit()
+    unlock_region(db_session, region)
+
+    loaded_regions = load_region_polygons(db_session.query(Region).all())
+    session_config = SessionTierConfig(**SESSION_CONFIG_KWARGS)
+
+    workout = make_workout_with_route(db_session, minutes_in_region=30)
+    results = process_session(db_session, workout, loaded_regions, session_config, rng=random.Random(1))
+
+    assert all(r.tier == "common" for r in results)
+    assert current_fragment_balance(db_session) == len(results)
+
+
+def test_non_common_rolls_do_not_convert_to_fragments(db_session):
+    load_regions(db_session, geojson_collection([feature("area-a", SQUARE_A)]))
+    load_drop_table(db_session, json.dumps(PLACEHOLDER_TABLE_RARE_ONLY))
+    region = db_session.query(Region).one()
+    region.unlock_cost_fragments = 0
+    db_session.commit()
+    unlock_region(db_session, region)
+
+    loaded_regions = load_region_polygons(db_session.query(Region).all())
+    session_config = SessionTierConfig(**SESSION_CONFIG_KWARGS)
+
+    workout = make_workout_with_route(db_session, minutes_in_region=30)
+    results = process_session(db_session, workout, loaded_regions, session_config, rng=random.Random(1))
+
+    assert all(r.tier == "rare" for r in results)
+    assert current_fragment_balance(db_session) == 0
 
 
 def test_idle_workout_in_unlocked_region_produces_no_results(db_session):

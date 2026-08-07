@@ -23,7 +23,9 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
 - Phase 5 (region unlocks, the sink): Fragments spend to unlock a region
   permanently. Home is free (`always_unlocked`); other regions have a
   generated-not-committed cost. Fragments come from passive accrual and
-  from converting common session results back to Fragments.
+  from common-tier results (session rolls and wager payoffs alike),
+  which auto-convert to a Fragment the moment they're rolled — a common
+  has no other use, so there's no separate action to take.
 - The wager: a declared weekly set point (modest/standard/ambitious,
   generated thresholds and bonuses) that earns a bonus Payoff roll if met
   — rolled against whichever unlocked region got the most attributed

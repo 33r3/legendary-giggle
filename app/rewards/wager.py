@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from app.geo.attribution import load_region_polygons, attribute_route_minutes
 from app.loot.tables import load_table_for_region, resolve_roll
 from app.models import Region, WagerConfig, WagerDeclaration, WagerPayoff, Workout
+from app.rewards.fragments import record_common_conversion
 from app.rewards.movement import passes_movement_gate
 from app.rewards.unlocks import is_region_unlocked
 
@@ -166,6 +167,8 @@ def resolve_wager_payoff(db: Session, period_start: date, rng: random.Random | N
                     payoff.roll_value = roll_value
                     payoff.tier_result = outcome.tier
                     payoff.item_name = outcome.item_name
+                    if outcome.tier == "common":
+                        record_common_conversion(db, outcome.item_name, region_id)
 
     db.add(payoff)
     db.commit()
