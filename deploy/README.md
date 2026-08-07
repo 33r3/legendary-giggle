@@ -189,6 +189,10 @@ runs the same session-processing and wager-resolution logic as the
 timers from step 5 — useful right after a walk if you don't want to
 wait for the next scheduled tick.
 
+`/collection` (linked from the dashboard) is the permanent trophy
+case — every uncommon-or-better find, rarest first. Commons convert
+straight to Fragments and never show up there.
+
 ## 10. Backups
 
 Raw health data is append-only and irreplaceable — back it up.

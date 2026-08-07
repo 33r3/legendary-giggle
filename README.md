@@ -23,7 +23,9 @@ Self-hosted exercise gamification service. Design doc: `exercise-rpg-design.md`.
 - Phase 5 (region unlocks, the sink): Fragments spend to unlock a region
   permanently. Home is free (`always_unlocked`); other regions have a
   generated-not-committed cost. Fragments come from passive accrual and
-  from converting common session results back to Fragments.
+  from common-tier results (session rolls and wager payoffs alike),
+  which auto-convert to a Fragment the moment they're rolled — a common
+  has no other use, so there's no separate action to take.
 - The wager: a declared weekly set point (modest/standard/ambitious,
   generated thresholds and bonuses) that earns a bonus Payoff roll if met
   — rolled against whichever unlocked region got the most attributed
@@ -203,6 +205,12 @@ prompting for `WEB_UI_USERNAME` / `WEB_UI_PASSWORD` (set in `.env`). The
 web dashboard also has buttons to unlock a region, declare next
 period's wager, and trigger the same refresh as
 `process_sessions.py` + `resolve_wager_payoffs.py` combined.
+
+`/collection` is the permanent view: every uncommon-or-better find
+(session rolls and wager payoffs both), grouped rarest-first. Commons
+convert straight to Fragments and never appear there — "recent finds"
+on the dashboard is the short, mixed-tier activity feed; `/collection`
+is the trophy case.
 
 ## Deployment
 

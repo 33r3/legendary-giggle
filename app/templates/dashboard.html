@@ -138,9 +138,12 @@
     </section>
 
     <section class="card">
-      <h2>Recent finds</h2>
+      <div class="row">
+        <h2 style="margin-bottom: 0;">Recent finds</h2>
+        <a href="/collection" style="color: var(--accent); font-size: 0.85rem;">View collection &rarr;</a>
+      </div>
       {% if finds %}
-        <ul>
+        <ul style="margin-top: 0.6rem;">
           {% for entry in finds %}
             <li class="row">
               <span>{{ entry.result.item_name }} <span class="tag">({{ entry.result.tier }})</span></span>
